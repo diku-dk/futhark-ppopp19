@@ -25,9 +25,6 @@ programs = [("OptionPricing",
               ("n=1024", "nn-data/n1024_m512"),
               ("n=4096", "nn-data/n4096_m128")])]
 
-moderate_results = json.load(open('results/bulk-impact-moderate.json'))
-incremental_results = json.load(open('results/bulk-impact-incremental.json'))
-
 def plotting_info(x):
     name, filename, datasets = x
 

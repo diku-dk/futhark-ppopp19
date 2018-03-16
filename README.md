@@ -35,8 +35,8 @@ One some systems, depending on the OpenCL vendor, it may be necessary
 to set some combination of the environment variables `LIBRARY_PATH`,
 `CPATH`, and `LD_LIBRARY_PATH` for this to work.
 
-You will need a relatively beefy GPU, as some of the benchmarks are
-memory-hungry.  3GiB is enough.
+You will need a relatively beefy GPU, as in particular LocVolCalib is
+memory-hungry when being auto-tuned.  3GiB should be enough.
 
 While Futhark-generated code can handle multiple available OpenCL
 platforms, most of the third party benchmark implementations look only
