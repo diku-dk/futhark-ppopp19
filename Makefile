@@ -163,6 +163,7 @@ parboil-patched: pb2.5driver.tgz pb2.5benchmarks.tgz pb2.5datasets_standard.tgz
 	echo 'OPENCL_PATH=/' > parboil-patched/common/Makefile.conf
 	tar -C parboil-patched -xf pb2.5benchmarks.tgz
 	tar -C parboil-patched -xf pb2.5datasets_standard.tgz
+	patch -p0 < parboil-fixes.patch
 
 # This is a development rule that users should never use.
 parboil-fixes.patch:
