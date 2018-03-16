@@ -1,0 +1,889 @@
+diff -pur rodinia_3.1/cuda/myocyte/Makefile rodinia_3.1-patched/cuda/myocyte/Makefile
+--- rodinia_3.1/cuda/myocyte/Makefile	2018-03-03 22:34:52.169197288 +0100
++++ rodinia_3.1-patched/cuda/myocyte/Makefile	2018-03-03 22:34:52.869197601 +0100
+@@ -40,4 +40,4 @@ main.o:	define.c \
+ 
+ # delete all object files
+ clean:
+-	rm *.o *.out output.txt
++	rm -f *.o *.out output.txt
+diff -pur rodinia_3.1/cuda/myocyte/run rodinia_3.1-patched/cuda/myocyte/run
+--- rodinia_3.1/cuda/myocyte/run	2018-03-03 22:34:52.169197288 +0100
++++ rodinia_3.1-patched/cuda/myocyte/run	2018-03-03 22:34:52.869197601 +0100
+@@ -1 +1 @@
+-./myocyte.out 100 1 0
++./myocyte.out 3 65536 1
+diff -pur rodinia_3.1/cuda/myocyte/work_2.cu rodinia_3.1-patched/cuda/myocyte/work_2.cu
+--- rodinia_3.1/cuda/myocyte/work_2.cu	2018-03-03 22:34:52.168197288 +0100
++++ rodinia_3.1-patched/cuda/myocyte/work_2.cu	2018-03-03 22:34:52.871197602 +0100
+@@ -9,6 +9,9 @@
+ #include "embedded_fehlberg_7_8_2.cu"
+ #include "solver_2.cu"
+ 
++#include <sys/time.h>
++static struct timeval t_start, t_end;
++
+ //====================================================================================================100
+ //		MAIN FUNCTION
+ //====================================================================================================100
+@@ -213,6 +216,11 @@ int work_2(	int xmax,
+ 		blocks.y = 1;
+ 	}
+ 
++        int runs = atoi(getenv("RODINIA_RUNS"));
++        FILE* runtimes = fopen("runtimes", "w");
++        int run;
++        for (run = 0; run < runs; run++) {
++        gettimeofday(&t_start, NULL);
+ 	solver_2<<<blocks, threads>>>(	workload,
+ 																xmax,
+ 
+@@ -226,6 +234,12 @@ int work_2(	int xmax,
+ 																d_yy,
+ 																d_initvalu_temp,
+ 																d_finavalu_temp);
++        cudaThreadSynchronize();
++        gettimeofday(&t_end, NULL);
++
++        fprintf(runtimes, "%d\n",
++                (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++        }
+ 
+ 	// cudaThreadSynchronize();
+ 	// printf("CUDA error: %s\n", cudaGetErrorString(cudaGetLastError()));
+Only in rodinia_3.1-patched/opencl/backprop: backprop
+Only in rodinia_3.1-patched/opencl/backprop: backprop.o
+diff -pur rodinia_3.1/opencl/backprop/backprop_ocl.cpp rodinia_3.1-patched/opencl/backprop/backprop_ocl.cpp
+--- rodinia_3.1/opencl/backprop/backprop_ocl.cpp	2018-03-03 22:34:52.297197346 +0100
++++ rodinia_3.1-patched/opencl/backprop/backprop_ocl.cpp	2018-03-03 23:00:27.036545899 +0100
+@@ -12,6 +12,7 @@
+ 	#include <CL/cl.h>
+ #endif
+ 
++static struct timeval t_start, t_end;
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+@@ -31,7 +32,7 @@ static int initialize(int use_gpu)
+ 	cl_platform_id platform_id;
+ 	if (clGetPlatformIDs(1, &platform_id, NULL) != CL_SUCCESS) { printf("ERROR: clGetPlatformIDs(1,*,0) failed\n"); return -1; }
+ 	cl_context_properties ctxprop[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platform_id, 0};
+-	device_type = use_gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU;
++	device_type = CL_DEVICE_TYPE_ALL;
+ 	context = clCreateContextFromType( ctxprop, device_type, NULL, NULL, NULL );
+ 	if( !context ) { printf("ERROR: clCreateContextFromType(%s) failed\n", use_gpu ? "GPU" : "CPU"); return -1; }
+ 
+@@ -47,8 +48,8 @@ static int initialize(int use_gpu)
+ 	result = clGetContextInfo( context, CL_CONTEXT_DEVICES, size, device_list, NULL );
+ 	if( result != CL_SUCCESS ) { printf("ERROR: clGetContextInfo() failed\n"); return -1; }
+ 
+-	// create command queue for the first device
+-	cmd_queue = clCreateCommandQueue( context, device_list[0], 0, NULL );
++	// create command queue for the desired device
++	cmd_queue = clCreateCommandQueue( context, device_list[atoi(getenv("OPENCL_DEVICE_ID"))], 0, NULL );
+ 	if( !cmd_queue ) { printf("ERROR: clCreateCommandQueue() failed\n"); return -1; }
+ 	return 0;
+ }
+@@ -181,15 +182,23 @@ int bpnn_train_kernel(BPNN *net, float *
+ 	if(err != CL_SUCCESS) { printf("ERROR: clCreateBuffer hidden_delta_ocl\n"); return -1;}
+ 	input_prev_weights_ocl = clCreateBuffer(context, CL_MEM_READ_WRITE, (in + 1) * (hid + 1) * sizeof(float), NULL, &err );
+ 	if(err != CL_SUCCESS) { printf("ERROR: clCreateBuffer input_prev_weights_ocl\n"); return -1;}
+-		
+-	printf("Performing GPU computation\n");
+-	
++
+ 	//write buffers
+ 	err = clEnqueueWriteBuffer(cmd_queue, input_ocl, 1, 0, (in + 1) * sizeof(float), net->input_units, 0, 0, 0);
+ 	if(err != CL_SUCCESS) { printf("ERROR: clEnqueueWriteBuffer input_ocl\n"); return -1; }
+ 	err = clEnqueueWriteBuffer(cmd_queue, input_hidden_ocl, 1, 0, (in + 1) * (hid + 1) * sizeof(float), input_weights_one_dim, 0, 0, 0);
+ 	if(err != CL_SUCCESS) { printf("ERROR: clEnqueueWriteBuffer input_hidden_ocl\n"); return -1; }
+  
++		
++	printf("Performing GPU computation\n");
++
++        int run;
++        int runs = atoi(getenv("RODINIA_RUNS"));
++        FILE* runtimes = fopen("runtimes", "w");
++
++        for (run = 0; run < runs; run++) {
++          gettimeofday(&t_start, NULL);
++	
+ 	clSetKernelArg(kernel1, 0, sizeof(void *), (void*) &input_ocl);
+ 	clSetKernelArg(kernel1, 1, sizeof(void *), (void*) &output_hidden_ocl);
+ 	clSetKernelArg(kernel1, 2, sizeof(void *), (void*) &input_hidden_ocl);
+@@ -235,7 +244,13 @@ int bpnn_train_kernel(BPNN *net, float *
+ 	clSetKernelArg(kernel2, 5, sizeof(void *), (void*) &input_prev_weights_ocl );
+   
+ 	err = clEnqueueNDRangeKernel(cmd_queue, kernel2, 2, NULL, global_work, local_work, 0, 0, 0);
+-	if(err != CL_SUCCESS) { printf("ERROR: 1  clEnqueueNDRangeKernel()=>%d failed\n", err); return -1; }	
++	if(err != CL_SUCCESS) { printf("ERROR: 1  clEnqueueNDRangeKernel()=>%d failed\n", err); return -1; }
++        clFinish(cmd_queue);
++        gettimeofday(&t_end, NULL);
++        fprintf(runtimes, "%d\n",
++                (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++        }
++        fclose(runtimes);
+   
+ 	err = clEnqueueReadBuffer(cmd_queue, input_ocl, 1, 0, (in + 1) * sizeof(float), net->input_units, 0, 0, 0);
+ 	if(err != CL_SUCCESS) { printf("ERROR: 1  clEnqueueReadBuffer: input_ocl\n"); return -1; }	
+Only in rodinia_3.1-patched/opencl/backprop: facetrain.o
+Only in rodinia_3.1-patched/opencl/backprop: imagenet.o
+diff -pur rodinia_3.1/opencl/backprop/run rodinia_3.1-patched/opencl/backprop/run
+--- rodinia_3.1/opencl/backprop/run	2018-03-03 22:34:52.297197346 +0100
++++ rodinia_3.1-patched/opencl/backprop/run	2018-03-03 22:34:52.871197602 +0100
+@@ -1 +1 @@
+-./backprop 65536
+\ No newline at end of file
++./backprop 1048576
+\ No newline at end of file
+Only in rodinia_3.1-patched/opencl/backprop: runtimes
+Only in rodinia_3.1-patched/opencl/cfd: density
+Only in rodinia_3.1-patched/opencl/cfd: density_energy
+Only in rodinia_3.1-patched/opencl/cfd: euler3d
+diff -pur rodinia_3.1/opencl/cfd/euler3d.cpp rodinia_3.1-patched/opencl/cfd/euler3d.cpp
+--- rodinia_3.1/opencl/cfd/euler3d.cpp	2018-03-03 22:34:52.270197333 +0100
++++ rodinia_3.1-patched/opencl/cfd/euler3d.cpp	2018-03-03 22:34:52.871197602 +0100
+@@ -12,6 +12,9 @@
+ 	on 24/03/2011
+ ********************************************************************/
+ 
++#include <sys/time.h>
++static struct timeval t_start, t_end;
++
+ #include <iostream>
+ #include <fstream>
+ #include <math.h>
+@@ -345,6 +348,10 @@ int main(int argc, char** argv){
+ 		// these need to be computed the first time in order to compute time step
+ 		std::cout << "Starting..." << std::endl;
+ 
++                int runs = atoi(getenv("RODINIA_RUNS"));
++                FILE* runtimes = fopen("runtimes", "w");
++                for (int run = 0; run < runs; run++) {
++                gettimeofday(&t_start, NULL);
+ 		// Begin iterations
+ 		for(int i = 0; i < iterations; i++){
+ 			copy<float>(old_variables, variables, nelr*NVAR);
+@@ -358,8 +365,13 @@ int main(int argc, char** argv){
+ 			}
+ 		}
+ 		_clFinish();
++                gettimeofday(&t_end, NULL);
++                fprintf(runtimes, "%d\n",
++                        (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++                }
++                fclose(runtimes);
+ 		std::cout << "Saving solution..." << std::endl;
+-		dump(variables, nel, nelr);
++                dump(variables, nel, nelr);
+ 		std::cout << "Saved solution..." << std::endl;
+ 		_clStatistics();
+ 		std::cout << "Cleaning up..." << std::endl;
+Only in rodinia_3.1-patched/opencl/cfd: momentum
+Only in rodinia_3.1-patched/opencl/cfd: PD_OCL.txt
+diff -pur rodinia_3.1/opencl/cfd/run rodinia_3.1-patched/opencl/cfd/run
+--- rodinia_3.1/opencl/cfd/run	2018-03-03 22:34:52.270197333 +0100
++++ rodinia_3.1-patched/opencl/cfd/run	2018-03-03 23:11:18.389671751 +0100
+@@ -1,3 +1,5 @@
++#!/bin/sh
++
+ #There are three datasets:
+ 
+ #./euler3d ../../data/cfd/fvcorr.domn.097K   0
+@@ -7,8 +9,4 @@
+ #replace euler3d with other CFD programs
+ 
+ 
+-for ((  i=1;  i<=1;  i++))
+-do
+-  ./euler3d ../../data/cfd/fvcorr.domn.097K -t gpu -d 0
+-#  ./euler3d ../../data/cfd/fvcorr.domn.097K 1
+-done
++./euler3d ../../data/cfd/fvcorr.domn.193K -d $OPENCL_DEVICE_ID
+Only in rodinia_3.1-patched/opencl/cfd: runtimes
+Binary files rodinia_3.1/opencl/hotspot/hotspot and rodinia_3.1-patched/opencl/hotspot/hotspot differ
+diff -pur rodinia_3.1/opencl/hotspot/hotspot.c rodinia_3.1-patched/opencl/hotspot/hotspot.c
+--- rodinia_3.1/opencl/hotspot/hotspot.c	2018-03-03 22:34:52.272197334 +0100
++++ rodinia_3.1-patched/opencl/hotspot/hotspot.c	2018-03-03 23:03:23.660580025 +0100
+@@ -86,10 +86,13 @@ int compute_tran_temp(cl_mem MatrixPower
+ 	local_work_size[1] = BLOCK_SIZE;
+ 	
+ 	
+-	long long start_time = get_time();	
+-	
++
++        int run;
++        int runs = atoi(getenv("RODINIA_RUNS"));
++        FILE* runtimes = fopen("runtimes", "w");
++        for (run = 0; run < runs; run++) {
++        long long start_time = get_time();
+ 	for (t = 0; t < total_iterations; t += num_iterations) {
+-		
+ 		// Specify kernel arguments
+ 		int iter = MIN(num_iterations, total_iterations - t);
+ 		clSetKernelArg(kernel, 0, sizeof(int), (void *) &iter);
+@@ -124,8 +127,9 @@ int compute_tran_temp(cl_mem MatrixPower
+ 	if (error != CL_SUCCESS) fatal_CL(error, __LINE__);
+ 	
+ 	long long end_time = get_time();
+-	long long total_time = (end_time - start_time);	
+-	printf("\nKernel time: %.3f seconds\n", ((float) total_time) / (1000*1000));
++	long long total_time = (end_time - start_time);
++        fprintf(runtimes, "%lld\n", total_time);
++        }
+ 	
+ 	return src;
+ }
+@@ -166,17 +170,17 @@ int main(int argc, char** argv) {
+ 	
+ 	// Create a GPU context
+ 	cl_context_properties context_properties[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties) platform, 0};
+-    context = clCreateContextFromType(context_properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &error);
++    context = clCreateContextFromType(context_properties, CL_DEVICE_TYPE_ALL, NULL, NULL, &error);
+     if (error != CL_SUCCESS) fatal_CL(error, __LINE__);
+ 	
+-	// Get and print the chosen device (if there are multiple devices, choose the first one)
++	// Get and print the chosen device
+ 	size_t devices_size;
+ 	error = clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &devices_size);
+ 	if (error != CL_SUCCESS) fatal_CL(error, __LINE__);
+ 	cl_device_id *devices = (cl_device_id *) malloc(devices_size);
+ 	error = clGetContextInfo(context, CL_CONTEXT_DEVICES, devices_size, devices, NULL);
+ 	if (error != CL_SUCCESS) fatal_CL(error, __LINE__);
+-	device = devices[0];
++	device = devices[atoi(getenv("OPENCL_DEVICE_ID"))];
+ 	error = clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(pbuf), pbuf, NULL);
+ 	if (error != CL_SUCCESS) fatal_CL(error, __LINE__);
+ 	printf("Device: %s\n", pbuf);
+diff -pur rodinia_3.1/opencl/hotspot/run rodinia_3.1-patched/opencl/hotspot/run
+--- rodinia_3.1/opencl/hotspot/run	2018-03-03 22:34:52.274197335 +0100
++++ rodinia_3.1-patched/opencl/hotspot/run	2018-03-03 22:34:52.872197602 +0100
+@@ -1 +1 @@
+-./hotspot 512 2 2 ../../data/hotspot/temp_512 ../../data/hotspot/power_512 output.out
++./hotspot 1024 2 360 ../../data/hotspot/temp_1024 ../../data/hotspot/power_1024 /dev/null
+Only in rodinia_3.1-patched/opencl/hotspot: runtimes
+Binary files rodinia_3.1/opencl/kmeans/cluster.o and rodinia_3.1-patched/opencl/kmeans/cluster.o differ
+Binary files rodinia_3.1/opencl/kmeans/getopt.o and rodinia_3.1-patched/opencl/kmeans/getopt.o differ
+Binary files rodinia_3.1/opencl/kmeans/kmeans and rodinia_3.1-patched/opencl/kmeans/kmeans differ
+Binary files rodinia_3.1/opencl/kmeans/kmeans_clustering.o and rodinia_3.1-patched/opencl/kmeans/kmeans_clustering.o differ
+diff -pur rodinia_3.1/opencl/kmeans/kmeans.cpp rodinia_3.1-patched/opencl/kmeans/kmeans.cpp
+--- rodinia_3.1/opencl/kmeans/kmeans.cpp	2018-03-03 22:34:52.315197353 +0100
++++ rodinia_3.1-patched/opencl/kmeans/kmeans.cpp	2018-03-03 23:17:50.812738649 +0100
+@@ -67,7 +67,7 @@ static int initialize(int use_gpu)
+ 	cl_platform_id platform_id;
+ 	if (clGetPlatformIDs(1, &platform_id, NULL) != CL_SUCCESS) { printf("ERROR: clGetPlatformIDs(1,*,0) failed\n"); return -1; }
+ 	cl_context_properties ctxprop[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platform_id, 0};
+-	device_type = use_gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU;
++	device_type = CL_DEVICE_TYPE_ALL;
+ 	context = clCreateContextFromType( ctxprop, device_type, NULL, NULL, NULL );
+ 	if( !context ) { printf("ERROR: clCreateContextFromType(%s) failed\n", use_gpu ? "GPU" : "CPU"); return -1; }
+ 
+@@ -81,8 +81,8 @@ static int initialize(int use_gpu)
+ 	result = clGetContextInfo( context, CL_CONTEXT_DEVICES, size, device_list, NULL );
+ 	if( result != CL_SUCCESS ) { printf("ERROR: clGetContextInfo() failed\n"); return -1; }
+ 
+-	// create command queue for the first device
+-	cmd_queue = clCreateCommandQueue( context, device_list[0], 0, NULL );
++	// create command queue for the desired device
++	cmd_queue = clCreateCommandQueue( context, device_list[atoi(getenv("OPENCL_DEVICE_ID"))], 0, NULL );
+ 	if( !cmd_queue ) { printf("ERROR: clCreateCommandQueue() failed\n"); return -1; }
+ 
+ 	return 0;
+diff -pur rodinia_3.1/opencl/kmeans/Makefile rodinia_3.1-patched/opencl/kmeans/Makefile
+--- rodinia_3.1/opencl/kmeans/Makefile	2018-03-03 22:34:52.315197353 +0100
++++ rodinia_3.1-patched/opencl/kmeans/Makefile	2018-03-03 22:34:52.872197602 +0100
+@@ -22,4 +22,4 @@ rmse.o: rmse.c
+ 	$(CC) $(CC_FLAGS) rmse.c -c
+ 
+ clean:
+-	rm -f *.o *~ kmeans *.linkinfo
++	rm -f *.o *~ kmeans *.linkinfo unistd.h
+diff -pur rodinia_3.1/opencl/kmeans/read_input.c rodinia_3.1-patched/opencl/kmeans/read_input.c
+--- rodinia_3.1/opencl/kmeans/read_input.c	2018-03-03 22:34:52.315197353 +0100
++++ rodinia_3.1-patched/opencl/kmeans/read_input.c	2018-03-03 22:34:52.872197602 +0100
+@@ -82,7 +82,8 @@
+ 
+ extern double wtime(void);
+ 
+-
++#include <sys/time.h>
++static struct timeval t_start, t_end;
+ 
+ /*---< usage() >------------------------------------------------------------*/
+ void usage(char *argv0) {
+@@ -235,6 +236,12 @@ int setup(int argc, char **argv) {
+ 	/* ======================= core of the clustering ===================*/
+ 
+     //cluster_timing = omp_get_wtime();		/* Total clustering time */
++
++        int runs = atoi(getenv("RODINIA_RUNS"));
++        int run;
++        FILE* runtimes = fopen("runtimes", "w");
++        for (run = 0; run < runs; run++) {
++          gettimeofday(&t_start, NULL);
+ 	cluster_centres = NULL;
+     index = cluster(npoints,				/* number of data points */
+ 					nfeatures,				/* number of features for each point */
+@@ -246,7 +253,11 @@ int setup(int argc, char **argv) {
+ 				   &cluster_centres,		/* return: [best_nclusters][nfeatures] */  
+ 				   &rmse,					/* Root Mean Squared Error */
+ 					isRMSE,					/* calculate RMSE */
+-					nloops);				/* number of iteration for each number of clusters */		
++					nloops);				/* number of iteration for each number of clusters */
++    gettimeofday(&t_end, NULL);
++    fprintf(runtimes, "%d\n",
++            (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++        }
+     
+ 	//cluster_timing = omp_get_wtime() - cluster_timing;
+ 
+Binary files rodinia_3.1/opencl/kmeans/read_input.o and rodinia_3.1-patched/opencl/kmeans/read_input.o differ
+Binary files rodinia_3.1/opencl/kmeans/rmse.o and rodinia_3.1-patched/opencl/kmeans/rmse.o differ
+Only in rodinia_3.1-patched/opencl/kmeans: runtimes
+Only in rodinia_3.1/opencl/kmeans: unistd.h
+diff -pur rodinia_3.1/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c rodinia_3.1-patched/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c
+--- rodinia_3.1/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c	2018-03-03 22:34:52.284197339 +0100
++++ rodinia_3.1-patched/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c	2018-03-03 23:25:41.268763872 +0100
+@@ -1,3 +1,7 @@
++#include <unistd.h>
++#include <sys/time.h>
++static struct timeval t_start, t_end;
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+@@ -117,7 +121,7 @@ kernel_gpu_opencl_wrapper(	par_str par_c
+ 	// Create context for selected platform being GPU
+ 	cl_context context;
+ 	context = clCreateContextFromType(	context_properties, 
+-										CL_DEVICE_TYPE_GPU, 
++										CL_DEVICE_TYPE_ALL, 
+ 										NULL, 
+ 										NULL, 
+ 										&error);
+@@ -148,9 +152,9 @@ kernel_gpu_opencl_wrapper(	par_str par_c
+ 	if (error != CL_SUCCESS) 
+ 		fatal_CL(error, __LINE__);
+ 
+-	// Select the first device (previousely selected for the context) (if there are multiple devices, choose the first one)
++	// Select the desired device
+ 	cl_device_id device;
+-	device = devices[0];
++	device = devices[atoi(getenv("OPENCL_DEVICE_ID"))];
+ 
+ 	// Get the name of the selected device (previousely selected for the context) and print it
+ 	error = clGetDeviceInfo(device, 
+@@ -403,6 +407,11 @@ kernel_gpu_opencl_wrapper(	par_str par_c
+ 	//	KERNEL
+ 	//======================================================================================================================================================150
+ 
++        int runs = atoi(getenv("RODINIA_RUNS"));
++        int run;
++        FILE* runtimes = fopen("runtimes", "w");
++        for (run = 0; run < runs; run++) {
++        gettimeofday(&t_start, NULL);
+ 	// ???
+ 	clSetKernelArg(	kernel, 
+ 					0, 
+@@ -446,7 +455,11 @@ kernel_gpu_opencl_wrapper(	par_str par_c
+ 	error = clFinish(command_queue);
+ 	if (error != CL_SUCCESS) 
+ 		fatal_CL(error, __LINE__);
+-
++        gettimeofday(&t_end, NULL);
++        fprintf(runtimes, "%d\n",
++                (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++        sleep(3);
++        }
+ 	time4 = get_time();
+ 
+ 	//======================================================================================================================================================150
+Only in rodinia_3.1-patched/opencl/lavaMD/kernel: kernel_gpu_opencl_wrapper.o
+Only in rodinia_3.1-patched/opencl/lavaMD: lavaMD
+diff -pur rodinia_3.1/opencl/lavaMD/main.c rodinia_3.1-patched/opencl/lavaMD/main.c
+--- rodinia_3.1/opencl/lavaMD/main.c	2018-03-03 22:34:52.286197340 +0100
++++ rodinia_3.1-patched/opencl/lavaMD/main.c	2018-03-03 22:34:52.873197602 +0100
+@@ -254,8 +254,8 @@ main(	int argc,
+ 	//	PARAMETERS, DISTANCE, CHARGE AND FORCE
+ 	//====================================================================================================100
+ 
+-	// random generator seed set to random value - time in this case
+-	srand(time(NULL));
++	// random generator seed set to random value - 42 in this case
++	srand(42);
+ 
+ 	// input (distances)
+ 	rv_cpu = (FOUR_VECTOR*)malloc(dim_cpu.space_mem);
+Only in rodinia_3.1-patched/opencl/lavaMD: main.o
+diff -pur rodinia_3.1/opencl/lavaMD/makefile rodinia_3.1-patched/opencl/lavaMD/makefile
+--- rodinia_3.1/opencl/lavaMD/makefile	2018-03-03 22:34:52.284197339 +0100
++++ rodinia_3.1-patched/opencl/lavaMD/makefile	2018-03-03 22:34:52.873197602 +0100
+@@ -82,7 +82,7 @@ main.o:		main.h \
+ 
+ # delete all object and executable files
+ clean:
+-	rm	*.o lavaMD \
++	rm -f	*.o lavaMD \
+ 		./kernel/*.o \
+ 		./util/num/*.o \
+ 		./util/timer/*.o \
+Only in rodinia_3.1-patched/opencl/lavaMD: runtimes
+Only in rodinia_3.1-patched/opencl/lavaMD/util/num: num.o
+Only in rodinia_3.1-patched/opencl/lavaMD/util/opencl: opencl.o
+Only in rodinia_3.1-patched/opencl/lavaMD/util/timer: timer.o
+diff -pur rodinia_3.1/opencl/nn/clutils.cpp rodinia_3.1-patched/opencl/nn/clutils.cpp
+--- rodinia_3.1/opencl/nn/clutils.cpp	2018-03-03 22:34:52.271197334 +0100
++++ rodinia_3.1-patched/opencl/nn/clutils.cpp	2018-03-03 23:27:33.215769874 +0100
+@@ -199,7 +199,7 @@ cl_context cl_init(char devicePreference
+     //printf("Enter Platform and Device No (Seperated by Space) \n");
+     //scanf("%d %d", &chosen_platform, &chosen_device); 
+     chosen_platform = 0; 
+-    chosen_device = 0;
++    chosen_device = atoi(getenv("OPENCL_DEVICE_ID"));
+     printf("Using Platform %d, Device %d \n", chosen_platform, chosen_device);
+ 
+     // Do a sanity check of platform/device selection
+diff -pur rodinia_3.1/opencl/nn/filelist.txt rodinia_3.1-patched/opencl/nn/filelist.txt
+--- rodinia_3.1/opencl/nn/filelist.txt	2018-03-03 22:34:52.271197334 +0100
++++ rodinia_3.1-patched/opencl/nn/filelist.txt	2018-03-03 22:34:52.873197602 +0100
+@@ -2,4 +2,79 @@
+ ../../data/nn/cane4_1.db
+ ../../data/nn/cane4_2.db
+ ../../data/nn/cane4_3.db
+-
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
++../../data/nn/cane4_0.db
++../../data/nn/cane4_1.db
++../../data/nn/cane4_2.db
++../../data/nn/cane4_3.db
+diff -pur rodinia_3.1/opencl/nn/nearestNeighbor.cpp rodinia_3.1-patched/opencl/nn/nearestNeighbor.cpp
+--- rodinia_3.1/opencl/nn/nearestNeighbor.cpp	2018-03-03 22:34:52.270197333 +0100
++++ rodinia_3.1-patched/opencl/nn/nearestNeighbor.cpp	2018-03-03 22:34:52.873197602 +0100
+@@ -3,7 +3,51 @@
+ 
+ #include "nearestNeighbor.h"
+ 
++#include <sys/time.h>
++static struct timeval t_start, t_end;
++
+ cl_context context=NULL;
++cl_kernel NN_kernel;
++cl_mem d_locations;
++cl_mem d_distances;
++cl_event writeEvent,kernelEvent,readEvent;
++cl_command_queue command_queue;
++
++void openClSetup(int numRecords, const std::vector<LatLong>& locations) {
++    // 1. set up kernel
++         cl_int status;
++        cl_program cl_NN_program;
++        cl_NN_program = cl_compileProgram(
++            (char *)"nearestNeighbor_kernel.cl",NULL);
++       
++        NN_kernel = clCreateKernel(
++            cl_NN_program, "NearestNeighbor", &status);
++        status = cl_errChk(status, (char *)"Error Creating Nearest Neighbor kernel",true);
++        if(status)exit(1);
++    // 2. set up memory on device and send ipts data to device
++    // copy ipts(1,2) to device
++    // also need to alloate memory for the distancePoints
++
++    cl_int error=0;
++
++    d_locations = clCreateBuffer(context, CL_MEM_READ_ONLY,
++        sizeof(LatLong) * numRecords, NULL, &error);
++
++    d_distances = clCreateBuffer(context, CL_MEM_READ_WRITE,
++        sizeof(float) * numRecords, NULL, &error);
++
++    command_queue = cl_getCommandQueue();
++    error = clEnqueueWriteBuffer(command_queue,
++               d_locations,
++               1, // change to 0 for nonblocking write
++               0, // offset
++               sizeof(LatLong) * numRecords,
++               &locations[0],
++               0,
++               NULL,
++               &writeEvent);
++
++}
+ 
+ int main(int argc, char *argv[]) {
+   std::vector<Record> records;
+@@ -37,11 +81,21 @@ int main(int argc, char *argv[]) {
+   if (resultsCount > numRecords) resultsCount = numRecords;
+ 
+   context = cl_init_context(platform,device,quiet);
+-  
+-  recordDistances = OpenClFindNearestNeighbors(context,numRecords,locations,lat,lng,timing);
+-
+-  // find the resultsCount least distances
+-  findLowest(records,recordDistances,numRecords,resultsCount);
++  int run;
++  int runs = atoi(getenv("RODINIA_RUNS"));
++  FILE* runtimes = fopen("runtimes", "w");
++  openClSetup(numRecords, locations);
++  for (run = 0; run < runs; run++) {
++    gettimeofday(&t_start, NULL);
++    recordDistances = OpenClFindNearestNeighbors(context,numRecords,locations,lat,lng,timing);
++
++    // find the resultsCount least distances
++    findLowest(records,recordDistances,numRecords,resultsCount);
++    gettimeofday(&t_end, NULL);
++    fprintf(runtimes,
++            "%d\n",
++            (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++  }
+ 
+   // print out results
+   if (!quiet)
+@@ -57,44 +111,8 @@ float *OpenClFindNearestNeighbors(
+ 	int numRecords,
+ 	std::vector<LatLong> &locations,float lat,float lng,
+ 	int timing) {
+-
+-    // 1. set up kernel
+-    cl_kernel NN_kernel;
+-        cl_int status;
+-        cl_program cl_NN_program;
+-        cl_NN_program = cl_compileProgram(
+-            (char *)"nearestNeighbor_kernel.cl",NULL);
+-       
+-        NN_kernel = clCreateKernel(
+-            cl_NN_program, "NearestNeighbor", &status);
+-        status = cl_errChk(status, (char *)"Error Creating Nearest Neighbor kernel",true);
+-        if(status)exit(1);
+-    // 2. set up memory on device and send ipts data to device
+-    // copy ipts(1,2) to device
+-    // also need to alloate memory for the distancePoints
+-    cl_mem d_locations;
+-    cl_mem d_distances;
+-
+     cl_int error=0;
+ 
+-    d_locations = clCreateBuffer(context, CL_MEM_READ_ONLY,
+-        sizeof(LatLong) * numRecords, NULL, &error);
+-
+-    d_distances = clCreateBuffer(context, CL_MEM_READ_WRITE,
+-        sizeof(float) * numRecords, NULL, &error);
+-
+-    cl_command_queue command_queue = cl_getCommandQueue();
+-    cl_event writeEvent,kernelEvent,readEvent;
+-    error = clEnqueueWriteBuffer(command_queue,
+-               d_locations,
+-               1, // change to 0 for nonblocking write
+-               0, // offset
+-               sizeof(LatLong) * numRecords,
+-               &locations[0],
+-               0,
+-               NULL,
+-               &writeEvent);
+-
+     // 3. send arguments to device
+     cl_int argchk;
+     argchk  = clSetKernelArg(NN_kernel, 0, sizeof(cl_mem), (void *)&d_locations);
+@@ -172,10 +190,7 @@ float *OpenClFindNearestNeighbors(
+         
+         printf("%f\n\n",(float)(totalTime/1e9));
+     }
+-    // 6. return finalized data and release buffers
+-    clReleaseMemObject(d_locations);
+-    clReleaseMemObject(d_distances);
+-	return distances;
++    return distances;
+ }
+ 
+ int loadData(char *filename,std::vector<Record> &records,std::vector<LatLong> &locations){
+Binary files rodinia_3.1/opencl/nn/nn and rodinia_3.1-patched/opencl/nn/nn differ
+diff -pur rodinia_3.1/opencl/nn/run rodinia_3.1-patched/opencl/nn/run
+--- rodinia_3.1/opencl/nn/run	2018-03-03 22:34:52.271197334 +0100
++++ rodinia_3.1-patched/opencl/nn/run	2018-03-03 22:34:52.873197602 +0100
+@@ -1 +1 @@
+-./nn filelist.txt -r 5 -lat 30 -lng 90
+\ No newline at end of file
++./nn filelist.txt -r 100 -lat 30 -lng 90 -d 0 -p 0
+Only in rodinia_3.1-patched/opencl/nn: runtimes
+diff -pur rodinia_3.1/opencl/pathfinder/main.cpp rodinia_3.1-patched/opencl/pathfinder/main.cpp
+--- rodinia_3.1/opencl/pathfinder/main.cpp	2018-03-03 22:34:52.270197333 +0100
++++ rodinia_3.1-patched/opencl/pathfinder/main.cpp	2018-03-03 22:34:52.874197603 +0100
+@@ -17,6 +17,9 @@
+ #include <iostream>
+ #include "OpenCL.h"
+ 
++#include <sys/time.h>
++static struct timeval t_start, t_end;
++
+ using namespace std;
+ 
+ // halo width along one direction when advancing to the next iteration
+@@ -131,18 +134,26 @@ int main(int argc, char** argv)
+ 	                                NULL,
+ 	                                NULL);
+ 
++        FILE* runtimes = fopen("runtimes", "w");
++        int run;
++        int runs = atoi(getenv("RODINIA_RUNS"));
+ 	cl_int* h_outputBuffer = (cl_int*)malloc(16384*sizeof(cl_int));
+-	for (int i = 0; i < 16384; i++)
+-	{
+-		h_outputBuffer[i] = 0;
+-	}
+ 	cl_mem d_outputBuffer = clCreateBuffer(cl.ctxt(),
+ 	                                       CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+ 	                                       sizeof(cl_int)*16384,
+ 	                                       h_outputBuffer,
+ 	                                       NULL);
+-
+ 	int src = 1, final_ret = 0;
++
++        for (run = 0; run < runs; run++) {
++	for (int i = 0; i < 16384; i++)
++	{
++		h_outputBuffer[i] = 0;
++	}
++        gettimeofday(&t_start, NULL);
++
++	src = 1;
++        final_ret = 0;
+ 	for (int t = 0; t < rows - 1; t += pyramid_height)
+ 	{
+ 		int temp = src;
+@@ -168,6 +179,11 @@ int main(int argc, char** argv)
+ 		clSetKernelArg(cl.kernel(kn), 11, sizeof(cl_mem), (void*) &d_outputBuffer);
+ 		cl.launch(kn);
+ 	}
++        clFinish(cl.q());
++        gettimeofday(&t_end, NULL);
++        fprintf(runtimes, "%d\n",
++                (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++        }
+ 
+ 	// Copy results back to host.
+ 	clEnqueueReadBuffer(cl.q(),                   // The command queue.
+Only in rodinia_3.1-patched/opencl/pathfinder: main.o
+diff -pur rodinia_3.1/opencl/pathfinder/makefile rodinia_3.1-patched/opencl/pathfinder/makefile
+--- rodinia_3.1/opencl/pathfinder/makefile	2018-03-03 22:34:52.270197333 +0100
++++ rodinia_3.1-patched/opencl/pathfinder/makefile	2018-03-03 23:31:33.389782751 +0100
+@@ -16,5 +16,4 @@ main.o: main.cpp OpenCL.cpp kernels.cl
+ 	$(CXX) $(CXXFLAGS) main.cpp OpenCL.cpp
+ 
+ clean:
+-	clear
+ 	@rm -f pathfinder *.o *.out *~ *\#
+diff -pur rodinia_3.1/opencl/pathfinder/OpenCL.cpp rodinia_3.1-patched/opencl/pathfinder/OpenCL.cpp
+--- rodinia_3.1/opencl/pathfinder/OpenCL.cpp	2018-03-03 22:34:52.270197333 +0100
++++ rodinia_3.1-patched/opencl/pathfinder/OpenCL.cpp	2018-03-03 23:30:44.100780108 +0100
+@@ -274,7 +274,7 @@ void OpenCL::getDevices(cl_device_type d
+ 	}
+  
+ 	// Create a command queue.
+-	command_queue = clCreateCommandQueue(context, device_id[0], 0, &ret);
++	command_queue = clCreateCommandQueue(context, device_id[atoi(getenv("OPENCL_DEVICE_ID"))], 0, &ret);
+ 	if (ret != CL_SUCCESS)
+ 	{
+ 		printf("\nError at clCreateCommandQueue! Error code %i\n\n", ret);
+@@ -284,10 +284,6 @@ void OpenCL::getDevices(cl_device_type d
+ 
+ void OpenCL::init(int isGPU)
+ {
+-	if (isGPU)
+-		getDevices(CL_DEVICE_TYPE_GPU);
+-	else
+-		getDevices(CL_DEVICE_TYPE_CPU);
+-
+-	buildKernel();
++  getDevices(CL_DEVICE_TYPE_ALL);
++  buildKernel();
+ }
+Only in rodinia_3.1-patched/opencl/pathfinder: OpenCL.o
+Only in rodinia_3.1-patched/opencl/pathfinder: pathfinder
+Only in rodinia_3.1-patched/opencl/pathfinder: result.txt
+Only in rodinia_3.1-patched/opencl/pathfinder: runtimes
+diff -pur rodinia_3.1/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c rodinia_3.1-patched/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c
+--- rodinia_3.1/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c	2018-03-03 22:34:52.298197346 +0100
++++ rodinia_3.1-patched/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c	2018-03-03 23:32:37.525786189 +0100
+@@ -1,3 +1,9 @@
++#include <stdlib.h>
++#include <sys/time.h>
++#include <error.h>
++#include <errno.h>
++static struct timeval t_start, t_end;
++
+ //========================================================================================================================================================================================================200
+ //	DEFINE/INCLUDE
+ //========================================================================================================================================================================================================200
+@@ -146,9 +152,9 @@ kernel_gpu_opencl_wrapper(	fp* image,
+ 	if (error != CL_SUCCESS) 
+ 		fatal_CL(error, __LINE__);
+ 
+-	// Select the first device (previousely selected for the context) (if there are multiple devices, choose the first one)
++	// Select the chosen device.
+ 	cl_device_id device;
+-	device = devices[0];
++	device = devices[atoi(getenv("OPENCL_DEVICE_ID"))];
+ 
+ 	// Get the name of the selected device (previousely selected for the context) and print it
+ 	error = clGetDeviceInfo(device, 
+@@ -537,7 +543,11 @@ kernel_gpu_opencl_wrapper(	fp* image,
+ 	//====================================================================================================100
+ 	//	set arguments
+ 	//====================================================================================================100
+-
++        FILE* runtimes = fopen("runtimes", "w");
++        int runs = atoi(getenv("RODINIA_RUNS"));
++        int i;
++        for (i = 0; i < runs; i++) {
++gettimeofday(&t_start, NULL);
+ 	error = clSetKernelArg(	extract_kernel, 
+ 							0, 
+ 							sizeof(long), 
+@@ -1024,6 +1034,14 @@ kernel_gpu_opencl_wrapper(	fp* image,
+ 		//====================================================================================================100
+ 
+ 	}
++        error = clFinish(command_queue);
++	if (error != CL_SUCCESS)
++          fatal_CL(error, __LINE__);
++
++        gettimeofday(&t_end, NULL);
++        fprintf(runtimes, "%d\n",
++                (t_end.tv_sec*1000000+t_end.tv_usec) - (t_start.tv_sec*1000000+t_start.tv_usec));
++        }
+ 
+ 	printf("\n");
+ 
+Only in rodinia_3.1-patched/opencl/srad/kernel: kernel_gpu_opencl_wrapper.o
+diff -pur rodinia_3.1/opencl/srad/main.c rodinia_3.1-patched/opencl/srad/main.c
+--- rodinia_3.1/opencl/srad/main.c	2018-03-03 22:34:52.298197346 +0100
++++ rodinia_3.1-patched/opencl/srad/main.c	2018-03-03 22:34:52.874197603 +0100
+@@ -222,12 +222,14 @@ main(	int argc,
+ 	// 	WRITE OUTPUT IMAGE TO FILE
+ 	//======================================================================================================================================================150
+ 
+-	write_graphics(	"./output/image_out.pgm",
+-					image,
+-					Nr,
+-					Nc,
+-					1,
+-					255);
++        if (0) { // Disabled for benchmarking
++          write_graphics(	"./output/image_out.pgm",
++                                image,
++                                Nr,
++                                Nc,
++                                1,
++                                255);
++        }
+ 
+ 	time5 = get_time();
+ 
+@@ -258,6 +260,7 @@ main(	int argc,
+ 	printf("Total time:\n");
+ 	printf("%.12f s\n", 																(fp) (time5-time0) / 1000000);
+ 
++        return 0;
+ }
+ 
+ //========================================================================================================================================================================================================200
+Only in rodinia_3.1-patched/opencl/srad: main.o
+diff -pur rodinia_3.1/opencl/srad/makefile rodinia_3.1-patched/opencl/srad/makefile
+--- rodinia_3.1/opencl/srad/makefile	2018-03-03 22:34:52.297197346 +0100
++++ rodinia_3.1-patched/opencl/srad/makefile	2018-03-03 22:34:52.874197603 +0100
+@@ -79,7 +79,7 @@ OCL_LIB = -lOpenCL
+ 			$(OCL_INC_DIR)
+ 
+ clean:
+-	rm	./*.o srad\
++	rm -f	./*.o srad\
+ 		./kernel/*.o \
+ 		./util/opencl/*.o \
+ 		./util/graphics/*.o \
+Only in rodinia_3.1-patched/opencl/srad: runtimes
+Only in rodinia_3.1-patched/opencl/srad: srad
+Only in rodinia_3.1-patched/opencl/srad/util/graphics: graphics.o
+Only in rodinia_3.1-patched/opencl/srad/util/graphics: resize.o
+Only in rodinia_3.1-patched/opencl/srad/util/opencl: opencl.o
+Only in rodinia_3.1-patched/opencl/srad/util/timer: timer.o
+diff -pur rodinia_3.1/README rodinia_3.1-patched/README
+--- rodinia_3.1/README	2018-03-03 22:34:52.315197353 +0100
++++ rodinia_3.1-patched/README	2018-03-03 22:41:07.420364883 +0100
+@@ -1,3 +1,7 @@
++NOTICE: this tree has been modified by the futhark-icfp18 Makefile to
++add consistent timing to some benchmark implementations and fix the
++most critical bugs.
++
+ Rodinia Benchmark Suite 3.1
+ ===========================
+ 

@@ -1,0 +1,89 @@
+Only in parboil-patched/benchmarks/mri-q: build
+Only in parboil-patched/benchmarks/mri-q: run
+diff -pur parboil/benchmarks/mri-q/src/opencl_nvidia/main.c parboil-patched/benchmarks/mri-q/src/opencl_nvidia/main.c
+--- parboil/benchmarks/mri-q/src/opencl_nvidia/main.c	2018-03-04 16:51:58.218479236 +0100
++++ parboil-patched/benchmarks/mri-q/src/opencl_nvidia/main.c	2018-03-04 17:14:40.584753576 +0100
+@@ -119,9 +119,10 @@ main (int argc, char *argv[]) {
+ 
+   cl_context_properties cps[3] = {CL_CONTEXT_PLATFORM,(cl_context_properties)cpPlatform,0};
+ 
+-  cl_device_id cdDevice;
+-  clStatus = clGetDeviceIDs(cpPlatform,CL_DEVICE_TYPE_GPU,1,&cdDevice,NULL);
++  cl_device_id cdDevice, clDevices[100];
++  clStatus = clGetDeviceIDs(clPlatform,CL_DEVICE_TYPE_ALL,100,clDevices,NULL);
+   CHECK_ERROR("clGetDeviceIDs")
++  clDevice = clDevices[atoi(getenv("OPENCL_DEVICE_ID"))];
+ 
+   clPrm.clContext = clCreateContextFromType(cps,CL_DEVICE_TYPE_GPU,NULL,NULL,&clStatus);
+   CHECK_ERROR("clCreateContextFromType")
+Binary files parboil/benchmarks/sgemm/build/opencl_nvidia_default/io.o and parboil-patched/benchmarks/sgemm/build/opencl_nvidia_default/io.o differ
+Binary files parboil/benchmarks/sgemm/build/opencl_nvidia_default/main.o and parboil-patched/benchmarks/sgemm/build/opencl_nvidia_default/main.o differ
+Binary files parboil/benchmarks/sgemm/build/opencl_nvidia_default/parboil_opencl.o and parboil-patched/benchmarks/sgemm/build/opencl_nvidia_default/parboil_opencl.o differ
+Binary files parboil/benchmarks/sgemm/build/opencl_nvidia_default/sgemm and parboil-patched/benchmarks/sgemm/build/opencl_nvidia_default/sgemm differ
+Only in parboil-patched/benchmarks/stencil: build
+Only in parboil-patched/benchmarks/stencil: run
+diff -pur parboil/benchmarks/stencil/src/opencl_nvidia/main.c parboil-patched/benchmarks/stencil/src/opencl_nvidia/main.c
+--- parboil/benchmarks/stencil/src/opencl_nvidia/main.c	2018-03-04 16:51:58.242479223 +0100
++++ parboil-patched/benchmarks/stencil/src/opencl_nvidia/main.c	2018-03-04 17:07:59.312968483 +0100
+@@ -91,11 +91,12 @@ int main(int argc, char** argv) {
+ 
+ 	cl_context_properties clCps[3] = {CL_CONTEXT_PLATFORM,(cl_context_properties)clPlatform,0};
+ 	
+-	cl_device_id clDevice;
+-	clStatus = clGetDeviceIDs(clPlatform,CL_DEVICE_TYPE_GPU,1,&clDevice,NULL);
+-	CHECK_ERROR("clGetDeviceIDs")
++	cl_device_id clDevice, clDevices[100];
++        clStatus = clGetDeviceIDs(clPlatform,CL_DEVICE_TYPE_ALL,100,clDevices,NULL);
++        CHECK_ERROR("clGetDeviceIDs")
++        clDevice = clDevices[atoi(getenv("OPENCL_DEVICE_ID"))];
+ 
+-	cl_context clContext = clCreateContextFromType(clCps,CL_DEVICE_TYPE_GPU,NULL,NULL,&clStatus);
++	cl_context clContext = clCreateContextFromType(clCps,CL_DEVICE_TYPE_ALL,NULL,NULL,&clStatus);
+ 	CHECK_ERROR("clCreateContextFromType")
+ 
+ 	cl_command_queue clCommandQueue = clCreateCommandQueue(clContext,clDevice,CL_QUEUE_PROFILING_ENABLE,&clStatus);
+Only in parboil-patched/benchmarks/tpacf: build
+Only in parboil-patched/benchmarks/tpacf: run
+diff -pur parboil/benchmarks/tpacf/src/opencl_nvidia/main.cc parboil-patched/benchmarks/tpacf/src/opencl_nvidia/main.cc
+--- parboil/benchmarks/tpacf/src/opencl_nvidia/main.cc	2018-03-04 16:51:58.245479222 +0100
++++ parboil-patched/benchmarks/tpacf/src/opencl_nvidia/main.cc	2018-03-04 17:09:20.616925267 +0100
+@@ -137,12 +137,13 @@ main( int argc, char** argv)
+   CHECK_ERROR("clGetPlatformIDs")
+ 
+   cl_context_properties clCps[3] = {CL_CONTEXT_PLATFORM,(cl_context_properties)clPlatform,0};
+-  cl_context clContext = clCreateContextFromType(clCps,CL_DEVICE_TYPE_GPU,NULL,NULL,&clStatus);
++  cl_context clContext = clCreateContextFromType(clCps,CL_DEVICE_TYPE_ALL,NULL,NULL,&clStatus);
+   CHECK_ERROR("clCreateContextFromType")
+    
+-  cl_device_id clDevice;
+-  clStatus = clGetDeviceIDs(clPlatform,CL_DEVICE_TYPE_GPU,1,&clDevice,NULL);
++  cl_device_id clDevice, clDevices[100];
++  clStatus = clGetDeviceIDs(clPlatform,CL_DEVICE_TYPE_ALL,100,clDevices,NULL);
+   CHECK_ERROR("clGetDeviceIDs")
++  clDevice = clDevices[atoi(getenv("OPENCL_DEVICE_ID"))];
+ 
+   cl_command_queue clCommandQueue = clCreateCommandQueue(clContext,clDevice,CL_QUEUE_PROFILING_ENABLE,&clStatus);
+   CHECK_ERROR("clCreateCommandQueue")
+Only in parboil-patched/common: Makefile.conf
+diff -pur parboil/common/src/parboil_opencl.c parboil-patched/common/src/parboil_opencl.c
+--- parboil/common/src/parboil_opencl.c	2018-03-04 16:51:58.195479249 +0100
++++ parboil-patched/common/src/parboil_opencl.c	2018-03-04 16:59:13.914247748 +0100
+@@ -229,7 +229,7 @@ pb_Parameters_CountInputs(struct pb_Para
+ 
+ static int is_async(enum pb_TimerID timer)
+ {
+-  return (timer == pb_TimerID_KERNEL) || 
++  return // (timer == pb_TimerID_KERNEL) || 
+              (timer == pb_TimerID_COPY_ASYNC);
+ }
+ 
+Binary files parboil/driver/actions.pyc and parboil-patched/driver/actions.pyc differ
+Binary files parboil/driver/benchmark.pyc and parboil-patched/driver/benchmark.pyc differ
+Binary files parboil/driver/error.pyc and parboil-patched/driver/error.pyc differ
+Binary files parboil/driver/futures.pyc and parboil-patched/driver/futures.pyc differ
+Binary files parboil/driver/globals.pyc and parboil-patched/driver/globals.pyc differ
+Binary files parboil/driver/__init__.pyc and parboil-patched/driver/__init__.pyc differ
+Binary files parboil/driver/options.pyc and parboil-patched/driver/options.pyc differ
+Binary files parboil/driver/parboilfile.pyc and parboil-patched/driver/parboilfile.pyc differ
+Binary files parboil/driver/process.pyc and parboil-patched/driver/process.pyc differ
+Binary files parboil/driver/text.pyc and parboil-patched/driver/text.pyc differ
