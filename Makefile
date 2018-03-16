@@ -60,7 +60,7 @@ results/matmul-reference.json: reference/matmul/matmul
 reference/matmul/matmul: reference/matmul/matmul.c
 	$(CC) $< -o $@ $(CFLAGS)
 
-fft-runtimes.pdf: results/fft-c.json results/fft-moderate.json results/fft-incremental.json results/fft-incremental-tuned.json tools/fft-plot.py
+fft-runtimes.pdf: results/fft-moderate.json results/fft-incremental.json results/fft-incremental-tuned.json tools/fft-plot.py
 	python tools/fft-plot.py
 
 benchmarks/fft-data: $(FUTHARK_C_DEPS)
@@ -222,23 +222,9 @@ benchmarks/nn-data:
 bulk-impact-speedup.pdf: results/nn-moderate.json results/nn-incremental.json results/nn-incremental-tuned.json results/OptionPricing-moderate.json results/OptionPricing-incremental.json results/OptionPricing-incremental-tuned.json tools/bulk-impact-plot.py
 	tools/bulk-impact-plot.py $@
 
-#n# Initialising the submodules
-
-futhark:
-	git submodule init
-	git submodule update
-
-futhark-benchmarks:
-	git submodule init
-	git submodule update
-
-finpar:
-	git submodule init
-	git submodule update
-
 ## Building Futhark
 
-bin/futhark-%: futhark
+bin/futhark-%:
 	mkdir -p bin
 	cd futhark && stack setup
 	cd futhark && stack build

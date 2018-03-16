@@ -1,3 +1,5 @@
+**IMPORTANT: IF YOU CLONE THIS REPOSITORY, USE `--recursive`, OR INITIALISE GIT SUBMODULES MANUALLY AFTERWARDS.**
+
 # Experimental infrastructure for ICFP'18 paper
 
 Ideally, run `make` and everything will happen.  All external
