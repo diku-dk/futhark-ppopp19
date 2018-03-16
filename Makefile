@@ -23,7 +23,7 @@ FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) 
 .PHONY: all clean veryclean
 .SECONDARY:
 
-all: plots
+all: $(FUTHARK_OPENCL_DEPS) rodinia_3.1-patched parboil-patched plots
 
 plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf fft-runtimes.pdf LocVolCalib-runtimes.pdf bulk-speedup.pdf bulk-impact-speedup.pdf
 
