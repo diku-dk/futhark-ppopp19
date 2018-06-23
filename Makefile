@@ -18,7 +18,7 @@ ifeq ($(FUTHARK_C),bin/futhark-c)
   FUTHARK_C_DEPS=bin/futhark-c
 endif
 
-FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --only threshold
+FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS)
 
 .PHONY: all clean veryclean
 .SECONDARY:
