@@ -37,8 +37,8 @@ let fft_iteration [n] (forward: f32) (ns: i32) (data: [n]complex) (j: i32)
   in (idxD, v0, idxD+ns, v1)
 
 let fft' [n] (forward: f32) (input: [n]complex) (bits: i32) : []complex =
-  let input = reshape n (copy (reshape (n/2,2) input))
-  let output = reshape n (copy (reshape (n/2,2) input))
+  let input = copy input
+  let output = copy input
   let ix = iota(n/radix)
   let NS = map (radix**) (iota bits)
   let (res,_) =

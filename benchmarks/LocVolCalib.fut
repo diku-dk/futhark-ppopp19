@@ -12,18 +12,16 @@
 import "/futlib/math"
 import "/futlib/array"
 
-default(f32)
-
 let initGrid(s0: f32, alpha: f32, nu: f32, t: f32, numX: i32, numY: i32, numT: i32)
   : (i32, i32, [numX]f32, [numY]f32, [numT]f32) =
   let logAlpha = f32.log alpha
-  let myTimeline = map (\i: f32  -> t * r32 i / (r32 numT - 1.0)) (iota numT)
+  let myTimeline = map (\i -> t * r32 i / (r32 numT - 1.0)) (iota numT)
   let (stdX, stdY) = (20.0 * alpha * s0 * f32.sqrt(t),
                       10.0 * nu         * f32.sqrt(t))
   let (dx, dy) = (stdX / r32 numX, stdY / r32 numY)
   let (myXindex, myYindex) = (t32(s0 / dx), numY / 2)
-  let myX = map (\i: f32 -> r32(i) * dx - r32 myXindex * dx + s0) (iota numX)
-  let myY = map (\i: f32 -> r32(i) * dy - r32 myYindex * dy + logAlpha) (iota numY)
+  let myX = map (\i -> r32 i * dx - r32 myXindex * dx + s0) (iota numX)
+  let myY = map (\i -> r32 i * dy - r32 myYindex * dy + logAlpha) (iota numY)
   in (myXindex, myYindex, myX, myY, myTimeline)
 
 -- make the innermost dimension of the result of size 4 instead of 3?
@@ -31,26 +29,23 @@ let initOperator [n] (x: [n]f32): ([n][3]f32,[n][3]f32) =
   let dxu     = x[1] - x[0]
   let dx_low  = [[0.0, -1.0 / dxu, 1.0 / dxu]]
   let dxx_low = [[0.0, 0.0, 0.0]]
-  let dx_mids = map (\(i: i32): ([]f32,[]f32)  ->
+  let dx_mids = map (\i ->
                        unsafe
                        let dxl = x[i] - x[i-1]
                        let dxu = x[i+1] - x[i]
-                       in ( [ -dxu/dxl/(dxl+dxu), (dxu/dxl - dxl/dxu)/(dxl+dxu),      dxl/dxu/(dxl+dxu) ],
-                            [  2.0/dxl/(dxl+dxu), -2.0*(1.0/dxl + 1.0/dxu)/(dxl+dxu), 2.0/dxu/(dxl+dxu) ] )
-                    ) (map (+1) (iota(n-2)))
+                       in ([ -dxu/dxl/(dxl+dxu), (dxu/dxl - dxl/dxu)/(dxl+dxu),      dxl/dxu/(dxl+dxu) ],
+                           [  2.0/dxl/(dxl+dxu), -2.0*(1.0/dxl + 1.0/dxu)/(dxl+dxu), 2.0/dxu/(dxl+dxu) ]))
+                    (1...n-2)
   let (dx_mid, dxx_mid) = unzip dx_mids
   let dxl      = x[n-1] - x[n-2]
   let dx_high  = [[-1.0 / dxl, 1.0 / dxl, 0.0 ]]
   let dxx_high = [[0.0, 0.0, 0.0 ]]
-  let dx     = concat (concat dx_low dx_mid) dx_high
-  let dxx    = concat (concat dxx_low dxx_mid) dxx_high
+  let dx     = dx_low ++ dx_mid ++ dx_high
+  let dxx    = dxx_low ++ dxx_mid ++ dxx_high
   in  (dx, dxx)
 
-let max(x: f32, y: f32): f32 = if y < x then x else y
-let maxInt(x: i32, y: i32): i32 = if y < x then x else y
-
 let setPayoff [numX][numY] (strike: f32, myX: [numX]f32, _myY: [numY]f32): *[numY][numX]f32 =
-  replicate numY (map (\xi: f32  -> max(xi-strike, 0.0)) myX)
+  replicate numY (map (\xi -> f32.max (xi-strike) 0.0) myX)
 
 -- Returns new myMuX, myVarX, myMuY, myVarY.
 let updateParams [numX][numY]
@@ -60,11 +55,10 @@ let updateParams [numX][numY]
   let myMuY  = replicate numX (replicate numY 0.0)
   let myVarY = replicate numX (replicate numY (nu*nu))
   let myMuX  = replicate numY (replicate numX 0.0)
-  let myVarX = map (\yj  ->
-                      map (\xi: f32  ->
-                             f32.exp(2.0*(beta*f32.log(xi) + yj - 0.5*nu*nu*tnow))
-                          ) myX
-                   ) myY
+  let myVarX = map (\yj ->
+                      map (\xi -> f32.exp(2.0*(beta*f32.log(xi) + yj - 0.5*nu*nu*tnow)))
+                          myX)
+                   myY
   in  ( myMuX, myVarX, myMuY, myVarY )
 
 let tridagSeq [n] (a:  [n]f32, b: *[n]f32, c: [n]f32, y: *[n]f32 ): *[n]f32 =
@@ -80,7 +74,7 @@ let tridagSeq [n] (a:  [n]f32, b: *[n]f32, c: [n]f32, y: *[n]f32 ): *[n]f32 =
        let y[i] = (y[i] - c[i]*y[i+1]) / b[i]
        in  y
 
-let tridagPar [n] (a:  [n]f32, b: *[n]f32, c: [n]f32, y: *[n]f32 ): *[n]f32 =
+let tridagPar [n] (a:  [n]f32, b: [n]f32, c: [n]f32, y: [n]f32 ): *[n]f32 =
   unsafe
   ----------------------------------------------------
   -- Recurrence 1: b[i] = b[i] - a[i]*c[i-1]/b[i-1] --
@@ -149,15 +143,15 @@ let explicitMethod [m][n] (myD:    [m][3]f32,  myDD: [m][3]f32,
                            result: [n][m]f32)
                   : *[n][m]f32 =
   -- 0 <= i < m AND 0 <= j < n
-  map (\mu_row var_row result_row: [m]f32  ->
-         map (\dx dxx mu var j: f32 ->
+  map3 (\mu_row var_row result_row ->
+         map5 (\dx dxx mu var j ->
                 let c1 = if 0 < j
-                         then ( mu*dx[0] + 0.5*var*dxx[0] ) * unsafe result_row[j-1]
+                         then (mu*dx[0] + 0.5*var*dxx[0]) * unsafe result_row[j-1]
                          else 0.0
                 let c3 = if j < (m-1)
-                         then ( mu*dx[2] + 0.5*var*dxx[2] ) * unsafe result_row[j+1]
+                         then (mu*dx[2] + 0.5*var*dxx[2]) * unsafe result_row[j+1]
                          else 0.0
-                let c2 =      ( mu*dx[1] + 0.5*var*dxx[1] ) * unsafe result_row[j  ]
+                let c2 =      (mu*dx[1] + 0.5*var*dxx[1]) * unsafe result_row[j  ]
                 in  c1 + c2 + c3)
              myD myDD mu_row var_row (iota m))
       myMu myVar result
@@ -167,14 +161,14 @@ let implicitMethod [n][m] (myD:  [m][3]f32,  myDD:  [m][3]f32,
                            myMu: [n][m]f32,  myVar: [n][m]f32,
                            u:   *[n][m]f32,  dtInv: f32)
                   : *[n][m]f32 =
-  map (\mu_row var_row (u_row: *[]f32): *[m]f32  ->
-         let (a,b,c) = unzip (map (\mu var d dd ->
+  map3 (\mu_row var_row u_row  ->
+         let (a,b,c) = unzip (map4 (\mu var d dd ->
                                    ( 0.0   - 0.5*(mu*d[0] + 0.5*var*dd[0])
                                    , dtInv - 0.5*(mu*d[1] + 0.5*var*dd[1])
                                    , 0.0   - 0.5*(mu*d[2] + 0.5*var*dd[2])))
                               mu_row var_row myD myDD)
-         in if n*m>=255*255
-            then tridagSeq( a, b, c, u_row )
+         in if false
+            then tridagSeq( a, b, c, copy u_row )
             else tridagPar( a, b, c, u_row ))
       myMu myVar u
 
@@ -183,30 +177,28 @@ let rollback
   (tnow: f32, tnext: f32, myResult: [numY][numX]f32,
    myMuX: [numY][numX]f32, myDx: [numX][3]f32, myDxx: [numX][3]f32, myVarX: [numY][numX]f32,
    myMuY: [numX][numY]f32, myDy: [numY][3]f32, myDyy: [numY][3]f32, myVarY: [numX][numY]f32)
-  : *[numY][numX]f32 =
+  : [numY][numX]f32 =
 
   let dtInv = 1.0/(tnext-tnow)
 
   -- explicitX
   let u = explicitMethod( myDx, myDxx, myMuX, myVarX, myResult )
-  let u = map (\u_row res_row: []f32  ->
-                 map (\u_el res_el  -> dtInv*res_el + 0.5*u_el)
-                     u_row res_row)
-              u myResult
+  let u = map2 (map2 (\u_el res_el  -> dtInv*res_el + 0.5*u_el))
+               u myResult
 
   -- explicitY
   let myResultTR = transpose(myResult)
-  let v = explicitMethod( myDy, myDyy, myMuY, myVarY, myResultTR )
-  let u = map (\us vs: *[]f32 -> map (+) us vs) u (transpose v)
+  let v = explicitMethod(myDy, myDyy, myMuY, myVarY, myResultTR)
+  let u = map2 (map2 (+)) u (transpose v)
   -- implicitX
   let u = implicitMethod( myDx, myDxx, myMuX, myVarX, u, dtInv )
   -- implicitY
-  let y = map (\u_row v_row: []f32 ->
-                 map (\u_el v_el -> dtInv*u_el - 0.5*v_el) u_row v_row)
+  let y = map2 (\u_row v_row: []f32 ->
+                 map2 (\u_el v_el -> dtInv*u_el - 0.5*v_el) u_row v_row)
               (transpose u) v
 
   let myResultTR = implicitMethod( myDy, myDyy, myMuY, myVarY, y, dtInv )
-  in  rearrange (1,0) myResultTR
+  in transpose myResultTR
 
 let value(numX: i32, numY: i32, numT: i32, s0: f32, strike: f32, t: f32, alpha: f32, nu: f32, beta: f32): f32 =
   let (myXindex, myYindex, myX, myY, myTimeline) =
@@ -226,8 +218,8 @@ let value(numX: i32, numY: i32, numT: i32, s0: f32, strike: f32, t: f32, alpha: 
       in myResult
   in myResult[myYindex,myXindex]
 
-let main (numS: i32, numX: i32, numY: i32, numT: i32,
-          s0: f32, _strike: f32, t: f32, alpha: f32, nu: f32, beta: f32): []f32 =
-  let strikes = map (\i -> 0.001*r32 i) (iota numS)
+let main (outer_loop_count: i32, numX: i32, numY: i32, numT: i32,
+          s0: f32, t: f32, alpha: f32, nu: f32, beta: f32): []f32 =
+  let strikes = map (\i -> 0.001*r32 i) (iota outer_loop_count)
   let res = map (\x -> value(numX, numY, numT, s0, x, t, alpha, nu, beta)) strikes
   in res
