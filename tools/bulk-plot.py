@@ -64,7 +64,7 @@ fig, ax = plt.subplots()
 
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
-font = {'family': 'normal',
+font = {'family': 'sans-serif',
         'size' : 9}
 plt.rc('font', **font)
 grey='#aaaaaa'
@@ -73,7 +73,7 @@ ymax=8
 ax.set_ylim([0.0,ymax])
 ax.set_xlim([0.0,ind[-1]+1])
 ax.set_ylabel('Speedup')
-ax.set_xticks(ind+width)
+ax.set_xticks(ind+width/2)
 ax.set_xticklabels(program_names)
 ax.xaxis.set_ticks_position('none')
 ax.yaxis.set_ticks_position('none')
@@ -108,7 +108,7 @@ def label_rect(rect):
 
 def add_ref(x):
     rect, runtime = x
-    ax.text(rect.get_x() + rect.get_width(), -2,
+    ax.text(rect.get_x() + rect.get_width(), -2.2,
             '%.2fms' % (runtime/1000),
             ha='center', va='baseline', fontdict=font)
 
@@ -116,7 +116,7 @@ map(label_rect, rects)
 map(label_rect, aux_rects)
 map(add_ref, zip(rects, ref_runtimes))
 
-ax.legend(bbox_to_anchor=(0., 1.15, 1., .115), loc=3, ncol=2, borderaxespad=0.)
+ax.legend(loc='upper right', ncol=2, borderaxespad=0.)
 
 fig.set_size_inches(10.5, 1.5)
 plt.rc('text')

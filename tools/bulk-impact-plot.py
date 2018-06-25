@@ -50,17 +50,17 @@ width = 0.33
 
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
-font = {'family': 'normal',
+font = {'family': 'sans-serif',
         'size' : 9}
 plt.rc('font', **font)
 plt.rc('text', usetex=True)
 grey='#aaaaaa'
 
 i = 0
-plt.figure(figsize=(4, 1.25))
+plt.figure(figsize=(5, 1))
 
 for (program_name, info) in program_plots:
-    plt.subplot(1, num_programs, num_programs-1-i)
+    plt.subplot(1, num_programs, num_programs-i)
 
     dataset_names, ref_runtimes, untuned_runtimes, tuned_runtimes = zip(*info)
     untuned_speedups = np.array(ref_runtimes)/np.array(untuned_runtimes)
@@ -73,9 +73,9 @@ for (program_name, info) in program_plots:
     plt.tick_params(
         axis='x',          # changes apply to the x-axis
         which='both',      # both major and minor ticks are affected
-        bottom='off',      # ticks along the bottom edge are off
-        top='off',         # ticks along the top edge are off
-        labelbottom='off') # labels along the bottom edge are off
+        bottom=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelbottom=False) # labels along the bottom edge are off
 
     notuned_rects = plt.bar(ind,
                             untuned_speedups, width,
@@ -83,8 +83,13 @@ for (program_name, info) in program_plots:
     tuned_rects = plt.bar(ind + width,
                           tuned_speedups, width,
                           color='#ff7c4c', hatch='*', zorder=3, label="Autotuned")
+    ymax = plt.ylim()[1]
 
-    notch = plt.ylim()[1]/30
+    if ymax > 3:
+        plt.gca().set_yticks(np.arange(np.ceil(plt.ylim()[1])))
+    else:
+        plt.gca().set_yticks(np.arange(np.ceil(plt.ylim()[1]/0.5))*0.5)
+    notch = ymax/30
 
     for (dataset_name, r, ref) in zip(dataset_names, notuned_rects, ref_runtimes):
         plt.text(r.get_x()+r.get_width(), r.get_y()-notch,
@@ -93,7 +98,6 @@ for (program_name, info) in program_plots:
 
     i += 1
 
-plt.legend(bbox_to_anchor=(0,-0.8), loc='lower center', ncol=2, borderaxespad=0.)
-plt.tight_layout()
+plt.legend(bbox_to_anchor=(1,-0.7), loc='lower center', ncol=2, borderaxespad=0.)
 plt.rc('text')
 plt.savefig(outputfile, bbox_inches='tight')
