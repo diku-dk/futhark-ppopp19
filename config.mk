@@ -17,8 +17,7 @@ else
   FUTHARK_OPENCL_DEVICE?=
 endif
 
-AUTOTUNE_SECONDS=600 # 10 minutes.
-AUTOTUNE_SECONDS_LOCVOLCALIB=1200 # 20 minutes; much larger search space.
+AUTOTUNE_SECONDS=1200 # 20 minutes at most.
 
 # If this is bin/futhark-opencl, it will be automatically built (if
 # necessary) when running the benchmarks.  Otherwise, set it to

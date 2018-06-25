@@ -96,7 +96,7 @@ results/LocVolCalib-incremental.json: $(FUTHARK_OPENCL_DEPS)
 	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/LocVolCalib.fut --json $@
 results/LocVolCalib-partridag-incremental-tuned.json: futhark $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results tunings
-	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/LocVolCalib-partridag.fut --stop-after $(AUTOTUNE_SECONDS_LOCVOLCALIB) --save-json tunings/LocVolCalib-partridag.json
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/LocVolCalib-partridag.fut --save-json tunings/LocVolCalib-partridag.json
 	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/LocVolCalib-partridag.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/LocVolCalib-partridag.json)
 
 results/LocVolCalib-finpar-%.json: results/LocVolCalib-%-small.raw results/LocVolCalib-%-medium.raw results/LocVolCalib-%-large.raw tools/LocVolCalib-json.py
