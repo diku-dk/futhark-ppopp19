@@ -8,6 +8,9 @@
 --
 -- compiled input @ OptionPricing-data/large.in
 -- output @ OptionPricing-data/large.out
+--
+-- compiled input @ OptionPricing-data/skewed.in
+-- output @ OptionPricing-data/skewed.out
 
 import "/futlib/math"
 import "/futlib/array"
