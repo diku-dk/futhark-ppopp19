@@ -1,4 +1,5 @@
-benchmarks/fft-data
+benchmarks/pathfinder-data
+benchmarks/pathfinder
 benchmarks/matmul-data
 benchmarks/*.c
 benchmarks/matmul

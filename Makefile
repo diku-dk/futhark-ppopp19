@@ -18,6 +18,11 @@ ifeq ($(FUTHARK_C),bin/futhark-c)
   FUTHARK_C_DEPS=bin/futhark-c
 endif
 
+ifeq ($(FUTHARK_DATASET),bin/futhark-dataset)
+  FUTHARK_DATASET_DEPS=bin/futhark-dataset
+endif
+
+
 FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS)
 
 .PHONY: all clean veryclean
@@ -25,7 +30,7 @@ FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) 
 
 all: $(FUTHARK_OPENCL_DEPS) rodinia_3.1-patched parboil-patched plots
 
-plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf fft-runtimes.pdf LocVolCalib-runtimes.pdf bulk-speedup.pdf bulk-impact-speedup.pdf
+plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-speedup.pdf bulk-impact-speedup.pdf
 
 matmul-runtimes-large.pdf: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
 	python tools/matmul-plot.py $@ $(MATMUL_SIZES_LARGE)
@@ -60,24 +65,22 @@ results/matmul-reference.json: reference/matmul/matmul
 reference/matmul/matmul: reference/matmul/matmul.c
 	$(CC) $< -o $@ $(CFLAGS)
 
-fft-runtimes.pdf: results/fft-moderate.json results/fft-incremental.json results/fft-incremental-tuned.json tools/fft-plot.py
-	python tools/fft-plot.py
-
-benchmarks/fft-data: $(FUTHARK_C_DEPS)
+benchmarks/pathfinder-data: $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS)
 	mkdir -p $@
-	$(FUTHARK_C) benchmarks/fft.fut
-	tools/make_fft_matrices.sh 2 10 24
+	$(FUTHARK_DATASET) -b -g [391][100][256]i32 > $@/391_100_256.in
+	$(FUTHARK_C) benchmarks/pathfinder.fut
+	benchmarks/pathfinder -b < $@/391_100_256.in > $@/391_100_256.out
 
-results/fft-moderate.json: benchmarks/fft-data $(FUTHARK_OPENCL_DEPS)
+results/pathfinder-moderate.json: benchmarks/pathfinder-data $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/fft.fut --json $@
-results/fft-incremental.json: benchmarks/fft-data $(FUTHARK_OPENCL_DEPS)
+	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/pathfinder.fut --json $@
+results/pathfinder-incremental.json: benchmarks/pathfinder-data $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/fft.fut --json $@
-results/fft-incremental-tuned.json: benchmarks/fft-data futhark $(FUTHARK_OPENCL_DEPS)
+	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/pathfinder.fut --json $@
+results/pathfinder-incremental-tuned.json: benchmarks/pathfinder-data futhark $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results tunings
-	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/fft.fut $(FUTHARK_BENCH_OPENCL_OPTIONS) --save-json tunings/fft.json
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/fft.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/fft.json)
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/pathfinder.fut $(FUTHARK_BENCH_OPENCL_OPTIONS) --save-json tunings/pathfinder.json
+	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/pathfinder.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/pathfinder.json)
 
 LocVolCalib-runtimes.pdf: results/LocVolCalib-partridag-moderate.json results/LocVolCalib-partridag-incremental.json results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-partridag-incremental-tuned.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json tools/LocVolCalib-plot.py
 	python tools/LocVolCalib-plot.py
@@ -214,11 +217,11 @@ results/%-incremental-tuned.json: tunings/%.json futhark-benchmarks $(FUTHARK_OP
 	mkdir -p results
 	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
 
-benchmarks/nn-data:
+benchmarks/nn-data: $(FUTHARK_DATASET_DEPS)
 	mkdir -p $@
-	N=256 M=2048 sh -c '(echo 100; futhark-dataset -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
-	N=1024 M=512 sh -c '(echo 100; futhark-dataset -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
-	N=4096 M=128 sh -c '(echo 100; futhark-dataset -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
+	N=256 M=2048 sh -c '(echo 100; $(FUTHARK_DATASET) -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
+	N=1024 M=512 sh -c '(echo 100; $(FUTHARK_DATASET) -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
+	N=4096 M=128 sh -c '(echo 100; $(FUTHARK_DATASET) -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
 
 bulk-impact-speedup.pdf: results/nn-moderate.json results/nn-incremental.json results/nn-incremental-tuned.json results/OptionPricing-moderate.json results/OptionPricing-incremental.json results/OptionPricing-incremental-tuned.json tools/bulk-impact-plot.py
 	tools/bulk-impact-plot.py $@
@@ -232,7 +235,7 @@ bin/futhark-%:
 	cp `cd futhark && stack exec which futhark-$*` $@
 
 clean:
-	rm -rf bin benchmarks/*.expected benchmarks/*.actual benchmarks/*-c benchmarks/matmul-data benchmarks/fft-data benchmarks/nn-data tunings results *.pdf finpar.log
+	rm -rf bin benchmarks/*.expected benchmarks/*.actual benchmarks/*-c benchmarks/matmul-data benchmarks/pathfinder-data benchmarks/nn-data tunings results *.pdf finpar.log
 
 veryclean: clean
 	rm -rf  rodinia_3.1-patched *.tgz *.tar.gz futhark finpar futhark-benchmarks
