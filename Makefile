@@ -40,13 +40,13 @@ matmul-runtimes-small.pdf: results/matmul-moderate.json results/matmul-increment
 
 
 # General rules for running the simple cases of benchmarks.
-results/%-moderate.json: benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+results/%-moderate.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results
 	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
-results/%-incremental.json: benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+results/%-incremental.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results
 	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
-results/%-incremental-tuned.json: benchmarks/%-data futhark $(FUTHARK_OPENCL_DEPS)
+results/%-incremental-tuned.json: benchmarks/%.fut benchmarks/%-data futhark $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results tunings
 	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/$*.fut $(FUTHARK_BENCH_OPENCL_OPTIONS) --save-json tunings/$*.json
 	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
