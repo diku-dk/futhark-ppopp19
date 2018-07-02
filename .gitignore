@@ -3,6 +3,7 @@ benchmarks/pathfinder
 benchmarks/matmul-data
 benchmarks/lavaMD
 benchmarks/lud
+benchmarks/backprop
 benchmarks/*.c
 benchmarks/matmul
 benchmarks/fft
