@@ -70,7 +70,7 @@ benchmarks/pathfinder-data: $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS)
 	$(FUTHARK_C) benchmarks/pathfinder.fut
 	benchmarks/pathfinder -b < $@/391_100_256.in > $@/391_100_256.out
 
-LocVolCalib-runtimes.pdf: results/LocVolCalib-partridag-moderate.json results/LocVolCalib-partridag-incremental.json results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-partridag-incremental-tuned.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json tools/LocVolCalib-plot.py
+LocVolCalib-runtimes.pdf: results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json tools/LocVolCalib-plot.py
 	python tools/LocVolCalib-plot.py
 
 results/LocVolCalib-finpar-%.json: results/LocVolCalib-%-small.raw results/LocVolCalib-%-medium.raw results/LocVolCalib-%-large.raw tools/LocVolCalib-json.py
