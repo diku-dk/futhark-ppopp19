@@ -23,7 +23,7 @@ ifeq ($(FUTHARK_DATASET),bin/futhark-dataset)
 endif
 
 
-FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS)
+FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --calc-timeout
 
 .PHONY: all clean veryclean
 .SECONDARY:
