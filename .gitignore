@@ -1,6 +1,7 @@
 benchmarks/pathfinder-data
 benchmarks/pathfinder
 benchmarks/matmul-data
+benchmarks/lavaMD
 benchmarks/*.c
 benchmarks/matmul
 benchmarks/fft

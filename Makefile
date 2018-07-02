@@ -38,6 +38,19 @@ matmul-runtimes-large.pdf: results/matmul-moderate.json results/matmul-increment
 matmul-runtimes-small.pdf: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
 	python tools/matmul-plot.py $@ $(MATMUL_SIZES_SMALL)
 
+
+# General rules for running the simple cases of benchmarks.
+results/%-moderate.json: benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+	mkdir -p results
+	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
+results/%-incremental.json: benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+	mkdir -p results
+	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
+results/%-incremental-tuned.json: benchmarks/%-data futhark $(FUTHARK_OPENCL_DEPS)
+	mkdir -p results tunings
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/$*.fut $(FUTHARK_BENCH_OPENCL_OPTIONS) --save-json tunings/$*.json
+	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
+
 # You will also have to modify the data set stanzas in
 # benchmarks/matmul.fut if you change these.
 MATMUL_SIZES_LARGE=0 10 25
@@ -48,20 +61,6 @@ benchmarks/matmul-data:
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_LARGE)
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_SMALL)
 
-results/matmul-moderate.json: benchmarks/matmul-data $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/matmul.fut --json $@
-results/matmul-incremental.json: benchmarks/matmul-data $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/matmul.fut --json $@
-results/matmul-incremental-tuned.json: benchmarks/matmul-data futhark $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results tunings
-	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/matmul.fut --save-json tunings/matmul.json
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/matmul.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/matmul.json)
-results/matmul-reference.json: reference/matmul/matmul
-	mkdir -p results
-	(cd reference/matmul; ./matmul ../../$@ $(MATMUL_SIZES_LARGE) $(MATMUL_SIZES_SMALL)) || rm $@
-
 reference/matmul/matmul: reference/matmul/matmul.c
 	$(CC) $< -o $@ $(CFLAGS)
 
@@ -71,36 +70,8 @@ benchmarks/pathfinder-data: $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS)
 	$(FUTHARK_C) benchmarks/pathfinder.fut
 	benchmarks/pathfinder -b < $@/391_100_256.in > $@/391_100_256.out
 
-results/pathfinder-moderate.json: benchmarks/pathfinder-data $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/pathfinder.fut --json $@
-results/pathfinder-incremental.json: benchmarks/pathfinder-data $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/pathfinder.fut --json $@
-results/pathfinder-incremental-tuned.json: benchmarks/pathfinder-data futhark $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results tunings
-	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/pathfinder.fut $(FUTHARK_BENCH_OPENCL_OPTIONS) --save-json tunings/pathfinder.json
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/pathfinder.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/pathfinder.json)
-
 LocVolCalib-runtimes.pdf: results/LocVolCalib-partridag-moderate.json results/LocVolCalib-partridag-incremental.json results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-partridag-incremental-tuned.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json tools/LocVolCalib-plot.py
 	python tools/LocVolCalib-plot.py
-
-results/LocVolCalib-partridag-moderate.json: $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/LocVolCalib-partridag.fut --json $@
-results/LocVolCalib-partridag-incremental.json: $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/LocVolCalib-partridag.fut --json $@
-results/LocVolCalib-moderate.json: $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/LocVolCalib.fut --json $@
-results/LocVolCalib-incremental.json: $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/LocVolCalib.fut --json $@
-results/LocVolCalib-partridag-incremental-tuned.json: futhark $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results tunings
-	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/LocVolCalib-partridag.fut --save-json tunings/LocVolCalib-partridag.json
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/LocVolCalib-partridag.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/LocVolCalib-partridag.json)
 
 results/LocVolCalib-finpar-%.json: results/LocVolCalib-%-small.raw results/LocVolCalib-%-medium.raw results/LocVolCalib-%-large.raw tools/LocVolCalib-json.py
 	python tools/LocVolCalib-json.py $* > $@
