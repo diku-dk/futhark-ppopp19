@@ -14,6 +14,7 @@ benchmarks/*.actual
 benchmarks/nn
 benchmarks/OptionPricing
 benchmarks/nn-data
+benchmarks/srad
 results/
 tunings/
 opentuner*
