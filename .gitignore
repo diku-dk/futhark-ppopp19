@@ -15,6 +15,7 @@ benchmarks/nn
 benchmarks/OptionPricing
 benchmarks/nn-data
 benchmarks/srad
+benchmarks/heston32
 results/
 tunings/
 opentuner*
