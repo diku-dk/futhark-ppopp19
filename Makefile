@@ -70,6 +70,9 @@ benchmarks/pathfinder-data: $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS)
 	$(FUTHARK_DATASET) -b -g [391][100][256]i32 > $@/391_100_256.in
 	$(FUTHARK_C) benchmarks/pathfinder.fut
 	benchmarks/pathfinder -b < $@/391_100_256.in > $@/391_100_256.out
+	$(FUTHARK_DATASET) -b -g [1][100][100096]i32 > $@/1_100_100096.in
+	$(FUTHARK_C) benchmarks/pathfinder.fut
+	benchmarks/pathfinder -b < $@/1_100_100096.in > $@/1_100_100096.out
 
 LocVolCalib-runtimes.pdf: results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json tools/LocVolCalib-plot.py
 	python tools/LocVolCalib-plot.py
