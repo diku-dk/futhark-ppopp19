@@ -194,9 +194,10 @@ results/%-incremental-tuned.json: tunings/%.json futhark-benchmarks $(FUTHARK_OP
 
 benchmarks/nn-data: $(FUTHARK_DATASET_DEPS)
 	mkdir -p $@
-	N=256 M=2048 sh -c '(echo 100; $(FUTHARK_DATASET) -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
-	N=1024 M=512 sh -c '(echo 100; $(FUTHARK_DATASET) -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
-	N=4096 M=128 sh -c '(echo 100; $(FUTHARK_DATASET) -b -g [$$N]f32 -g [$$N]f32 -g [$$N][$$M]f32 -g [$$N][$$M]f32) > $@/n$${N}_m$${M}'
+	N=256 M=2048 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
+	N=1024 M=512 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
+	N=4096 M=128 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
+	N=1 M=855280 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
 
 bulk-impact-speedup.pdf: results/nn-moderate.json results/nn-incremental.json results/nn-incremental-tuned.json results/OptionPricing-moderate.json results/OptionPricing-incremental.json results/OptionPricing-incremental-tuned.json tools/bulk-impact-plot.py
 	tools/bulk-impact-plot.py $@

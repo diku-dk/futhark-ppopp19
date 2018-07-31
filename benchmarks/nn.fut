@@ -6,6 +6,7 @@
 -- compiled input @ nn-data/n256_m2048
 -- compiled input @ nn-data/n1024_m512
 -- compiled input @ nn-data/n4096_m128
+-- compiled input @ nn-data/n1_m855280
 
 import "/futlib/math"
 
