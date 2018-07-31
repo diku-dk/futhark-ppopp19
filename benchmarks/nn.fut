@@ -13,9 +13,9 @@ let emptyRecord: (i32, f32) = (0, 0.0f32)
 
 let nn [m]
        (k: i32)
-       ((lat: f32), (lng: f32),
-        (locations_lat: [m]f32),
-        (locations_lng: [m]f32))
+       (lat: f32) (lng: f32)
+       (locations_lat: [m]f32)
+       (locations_lng: [m]f32)
        : ([k]i32, [k]f32) =
   let locations = zip locations_lat locations_lng
   let distance (lat_i: f32, lng_i: f32) =
@@ -44,4 +44,4 @@ let main [n] [m]
          (locations_lats: [n][m]f32)
          (locations_lngs: [n][m]f32)
         : ([n][k]i32, [n][k]f32) =
-  unzip (map (nn k) (zip lats lngs locations_lats locations_lngs))
+  unzip (map4 (nn k) lats lngs locations_lats locations_lngs)
