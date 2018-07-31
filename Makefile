@@ -23,9 +23,10 @@ ifeq ($(FUTHARK_DATASET),bin/futhark-dataset)
 endif
 
 
-FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --calc-timeout
+FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS)
 
 .PHONY: all clean veryclean
+.SUFFIXES:
 .SECONDARY:
 
 all: $(FUTHARK_OPENCL_DEPS) rodinia_3.1-patched parboil-patched plots
@@ -204,6 +205,12 @@ bin/futhark-%:
 	cd futhark && stack setup
 	cd futhark && stack build
 	cp `cd futhark && stack exec which futhark-$*` $@
+
+bin/futhark:
+	mkdir -p bin
+	cd futhark && stack setup
+	cd futhark && stack build
+	cp `cd futhark && stack exec which futhark` $@
 
 clean:
 	rm -rf bin benchmarks/*.expected benchmarks/*.actual benchmarks/*-c benchmarks/matmul-data benchmarks/pathfinder-data benchmarks/nn-data tunings results *.pdf finpar.log
