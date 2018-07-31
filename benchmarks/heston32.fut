@@ -3,7 +3,6 @@
 -- ==
 -- compiled input @ heston32-data/1062_quotes.in
 -- compiled input @ heston32-data/10000_quotes.in
--- compiled input @ heston32-data/100000_quotes.in
 
 import "/futlib/random"
 import "/futlib/math"
