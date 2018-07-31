@@ -162,10 +162,10 @@ let implicitMethod [n][m] (myD:  [m][3]f32,  myDD:  [m][3]f32,
                            u:   *[n][m]f32,  dtInv: f32)
                   : *[n][m]f32 =
   map3 (\mu_row var_row u_row  ->
-         let (a,b,c) = unzip (map4 (\mu var d dd ->
-                                   ( 0.0   - 0.5*(mu*d[0] + 0.5*var*dd[0])
-                                   , dtInv - 0.5*(mu*d[1] + 0.5*var*dd[1])
-                                   , 0.0   - 0.5*(mu*d[2] + 0.5*var*dd[2])))
+         let (a,b,c) = unzip3 (map4 (\mu var d dd ->
+                                    ( 0.0   - 0.5*(mu*d[0] + 0.5*var*dd[0])
+                                    , dtInv - 0.5*(mu*d[1] + 0.5*var*dd[1])
+                                    , 0.0   - 0.5*(mu*d[2] + 0.5*var*dd[2])))
                               mu_row var_row myD myDD)
          in tridagPar( a, b, c, u_row ))
       myMu myVar u
