@@ -4,7 +4,7 @@
 -- compiled input @ heston32-data/1062_quotes.in
 -- compiled input @ heston32-data/10000_quotes.in
 
-import "/futlib/random"
+import "lib/github.com/diku-dk/cpprandom/random"
 import "/futlib/math"
 import "heston/heston"
 
