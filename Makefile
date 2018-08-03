@@ -25,7 +25,7 @@ endif
 
 FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS)
 
-.PHONY: all clean veryclean
+.PHONY: all benchmark clean veryclean
 .SUFFIXES:
 .SECONDARY:
 
@@ -199,8 +199,17 @@ benchmarks/nn-data: $(FUTHARK_DATASET_DEPS)
 	N=4096 M=128 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
 	N=1 M=855280 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
 
-bulk-impact-speedup.pdf: results/nn-moderate.json results/nn-incremental.json results/nn-incremental-tuned.json results/OptionPricing-moderate.json results/OptionPricing-incremental.json results/OptionPricing-incremental-tuned.json tools/bulk-impact-plot.py
+## Impact benchmarking
+
+IMPACT_BENCHMARKS=benchmarks/nn.fut benchmarks/pathfinder.fut benchmarks/nw.fut benchmarks/backprop.fut benchmarks/srad.fut benchmarks/lavaMD.fut benchmarks/LocVolCalib.fut benchmarks/OptionPricing.fut benchmarks/heston32.fut
+MODERATE_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-moderate.json)
+INCREMENTAL_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental.json)
+AUTOTUNED_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental-tuned.json)
+
+bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) tools/bulk-impact-plot.py
 	tools/bulk-impact-plot.py $@
+
+
 
 ## Building Futhark
 

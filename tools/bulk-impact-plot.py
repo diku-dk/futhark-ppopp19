@@ -14,16 +14,43 @@ import os
 
 outputfile = sys.argv[1]
 
-programs = [("OptionPricing",
+programs = [ # Novel ones
+            ("OptionPricing",
              "OptionPricing",
-             [("small", "OptionPricing-data/small.in"),
-              ("medium", "OptionPricing-data/medium.in"),
+             [("medium", "OptionPricing-data/medium.in"),
               ("skewed", "OptionPricing-data/skewed.in")]),
+            ("Heston",
+             "heston32",
+             [("1062", "heston32-data/1062_quotes.in"),
+              ("10000", "heston32-data/10000_quotes.in")]),
+
+            # Pure ones
+            ("Backprop",
+             "backprop",
+             [("small", "backprop-data/small.in"),
+              ("small", "backprop-data/medium.in")]),
+            ("LavaMD",
+             "lavaMD",
+             [("27x64x30", "lavaMD-data/27_64_30.in"),
+              ("10x100x27", "lavaMD-data/10_100_27.in")]),
+            ("NW",
+             "nw",
+             [("large", "nw-data/large.in"),
+              ("medium", "nw-data/medium.in")]),
+
+            # Modified ones
             ("NN",
              "nn",
              [("n=256", "nn-data/n256_m2048"),
-              ("n=1024", "nn-data/n1024_m512"),
-              ("n=4096", "nn-data/n4096_m128")])]
+              ("n=4096", "nn-data/n4096_m128")]),
+            ("SRAD",
+             "srad",
+             [("1024 small", "srad-data/1024-small-images.in"),
+              ("1 large", "srad-data/one-big-image.in")]),
+            ("Pathfinder",
+             "pathfinder",
+             [("391x100x256", "pathfinder-data/391_100_256.in"),
+              ("1x100x100096", "pathfinder-data/1_100_100096.in")])]
 
 def plotting_info(x):
     name, filename, datasets = x
@@ -57,9 +84,10 @@ plt.rc('text', usetex=True)
 grey='#aaaaaa'
 
 i = 0
-plt.figure(figsize=(5, 1))
+plt.figure(figsize=(8, 1))
 
 for (program_name, info) in program_plots:
+    print('Plotting {}...'.format(program_name))
     plt.subplot(1, num_programs, num_programs-i)
 
     dataset_names, ref_runtimes, untuned_runtimes, tuned_runtimes = zip(*info)
@@ -85,10 +113,10 @@ for (program_name, info) in program_plots:
                           color='#ff7c4c', hatch='*', zorder=3, label="Autotuned")
     ymax = plt.ylim()[1]
 
-    if ymax > 3:
-        plt.gca().set_yticks(np.arange(np.ceil(plt.ylim()[1])))
-    else:
-        plt.gca().set_yticks(np.arange(np.ceil(plt.ylim()[1]/0.5))*0.5)
+    # if ymax > 3:
+    #     plt.gca().set_yticks(np.arange(np.ceil(plt.ylim()[1])))
+    # else:
+    #     plt.gca().set_yticks(np.arange(np.ceil(plt.ylim()[1]/0.5))*0.5)
     notch = ymax/30
 
     for (dataset_name, r, ref) in zip(dataset_names, notuned_rects, ref_runtimes):
@@ -100,4 +128,5 @@ for (program_name, info) in program_plots:
 
 plt.legend(bbox_to_anchor=(1,-0.7), loc='lower center', ncol=2, borderaxespad=0.)
 plt.rc('text')
+print('Saving {}...'.format(outputfile))
 plt.savefig(outputfile, bbox_inches='tight')
