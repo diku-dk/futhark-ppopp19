@@ -22,7 +22,7 @@ def datasets(n, m, k):
     return [ (dataset_filename(x, k), dataset_prettyname(x, k))
              for x in range(n, m+1, 1) ]
 
-def plot_datasets(n, m, k):
+def plot_datasets(handwritten, n, m, k):
     _, ax = plt.subplots()
     ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: "${}\mu{{}}s$".format(int(x))))
 
@@ -46,7 +46,7 @@ def plot_datasets(n, m, k):
                    )
     plot_it('results/matmul-incremental-tuned.json', label='incremental (auto-tuned)',
             marker='o', fillstyle='none', color='red')
-    plot_it('results/matmul-reference.json', label='hand-written',
+    plot_it('results/matmul-reference.json', label=handwritten,
             linestyle='dashed', color='grey')
 
     slowest = max(line.get_ydata())
@@ -61,11 +61,12 @@ def plot_datasets(n, m, k):
     plt.xlabel("$n$", size=20)
     plt.legend(loc='upper left')
 
-outfile=sys.argv[1]
-n=int(sys.argv[2])
-m=int(sys.argv[3])
-k=int(sys.argv[4])
+handwritten=sys.argv[1]
+outfile=sys.argv[2]
+n=int(sys.argv[3])
+m=int(sys.argv[4])
+k=int(sys.argv[5])
 
-plot_datasets(n, m, k)
+plot_datasets(handwritten, n, m, k)
 plt.gcf().set_size_inches(8, 4)
 plt.savefig(outfile, bbox_inches='tight')

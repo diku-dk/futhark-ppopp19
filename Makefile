@@ -34,11 +34,10 @@ all: $(FUTHARK_OPENCL_DEPS) rodinia_3.1-patched parboil-patched plots
 plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-speedup.pdf bulk-impact-speedup.pdf
 
 matmul-runtimes-large.pdf: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
-	python tools/matmul-plot.py $@ $(MATMUL_SIZES_LARGE)
+	python tools/matmul-plot.py $(MATMUL_REFERENCE) $@ $(MATMUL_SIZES_LARGE)
 
 matmul-runtimes-small.pdf: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
-	python tools/matmul-plot.py $@ $(MATMUL_SIZES_SMALL)
-
+	python tools/matmul-plot.py $(MATMUL_REFERENCE) $@ $(MATMUL_SIZES_SMALL)
 
 # General rules for running the simple cases of benchmarks.
 results/%-moderate.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
@@ -68,9 +67,11 @@ benchmarks/matmul-data:
 ifeq ($(USE_CUBLAS),1)
 reference/matmul/matmul: reference/matmul/matmul-cublas.cu
 	$(NVCC) $< -o $@ -lcublas
+MATMUL_REFERENCE=CUBLAS
 else
 reference/matmul/matmul: reference/matmul/matmul.c
 	$(CC) $< -o $@ $(CFLAGS)
+MATMUL_REFERENCE=hand-written
 endif
 
 results/matmul-reference.json: reference/matmul/matmul
