@@ -9,6 +9,11 @@ else
   CFLAGS=-lOpenCL -O3 -std=c99
 endif
 
+# CUDA settings; used only (and optionally) for the CUBLAS matrix
+# multiplication example.
+NVCC?=nvcc
+USE_CUBLAS?=$(shell (if which nvcc 2>/dev/null >/dev/null; then echo 1; else echo 0; fi))
+
 # On macOS, prefer an AMD device.  On other systems, just pick the
 # first one.
 ifeq ($(OS),Darwin)

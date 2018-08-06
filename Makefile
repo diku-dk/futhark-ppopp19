@@ -65,8 +65,17 @@ benchmarks/matmul-data:
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_LARGE)
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_SMALL)
 
+ifeq ($(USE_CUBLAS),1)
+reference/matmul/matmul: reference/matmul/matmul-cublas.cu
+	$(NVCC) $< -o $@ -lcublas
+else
 reference/matmul/matmul: reference/matmul/matmul.c
 	$(CC) $< -o $@ $(CFLAGS)
+endif
+
+results/matmul-reference.json: reference/matmul/matmul
+	mkdir -p results
+	(cd reference/matmul; ./matmul ../../$@ $(MATMUL_SIZES_LARGE) $(MATMUL_SIZES_SMALL)) || rm $@
 
 benchmarks/pathfinder-data: $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS)
 	mkdir -p $@
