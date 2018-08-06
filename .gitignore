@@ -4,6 +4,7 @@ benchmarks/matmul-data
 benchmarks/lavaMD
 benchmarks/lud
 benchmarks/backprop
+benchmarks/backprop-baseline
 benchmarks/*.c
 benchmarks/matmul
 benchmarks/fft
@@ -15,6 +16,7 @@ benchmarks/nn
 benchmarks/OptionPricing
 benchmarks/nn-data
 benchmarks/srad
+benchmarks/srad-baseline
 benchmarks/heston32
 benchmarks/nw
 results/

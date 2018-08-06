@@ -44,6 +44,9 @@ matmul-runtimes-small.pdf: results/matmul-moderate.json results/matmul-increment
 results/%-moderate.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results
 	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
+results/%-baseline.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+	mkdir -p results
+	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*-baseline.fut --json $@
 results/%-incremental.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
 	mkdir -p results
 	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
@@ -205,11 +208,10 @@ IMPACT_BENCHMARKS=benchmarks/nn.fut benchmarks/pathfinder.fut benchmarks/nw.fut 
 MODERATE_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-moderate.json)
 INCREMENTAL_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental.json)
 AUTOTUNED_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental-tuned.json)
+BASELINE_RESULTS=results/srad-baseline.json results/backprop-baseline.json
 
-bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) tools/bulk-impact-plot.py
+bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) tools/bulk-impact-plot.py
 	tools/bulk-impact-plot.py $@
-
-
 
 ## Building Futhark
 

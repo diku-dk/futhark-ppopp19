@@ -58,6 +58,13 @@ def plotting_info(x):
     moderate_results = json.load(open('results/{}-moderate.json'.format(filename)))
     incremental_results = json.load(open('results/{}-incremental.json'.format(filename)))
     incremental_tuned_results = json.load(open('results/{}-incremental-tuned.json'.format(filename)))
+    baseline_results = {}
+
+    try:
+        baseline_results = json.load(open('results/{}-baseline.json'.format(filename)))
+    except:
+        pass
+
     fut_name = 'benchmarks/{}.fut'.format(filename)
 
     bars = []
@@ -65,6 +72,12 @@ def plotting_info(x):
         moderate_runtime = np.mean(moderate_results[fut_name]['datasets'][dataset_file]['runtimes'])
         incremental_runtime = np.mean(incremental_results[fut_name]['datasets'][dataset_file]['runtimes'])
         incremental_tuned_runtime = np.mean(incremental_tuned_results[fut_name]['datasets'][dataset_file]['runtimes'])
+
+        baseline = moderate_results[fut_name]['datasets'].get(dataset_file)
+
+        if baseline:
+            moderate_runtime = np.mean(baseline['runtimes'])
+
         bars += [(dataset_name, moderate_runtime, incremental_runtime, incremental_tuned_runtime)]
     return (name, bars)
 
@@ -112,7 +125,7 @@ for (program_name, info) in program_plots:
                             color='#ffcebf', hatch='\\', zorder=3, label="Not autotuned")
     tuned_rects = plt.bar(ind + width,
                           tuned_speedups, width,
-                          color='#ff7c4c', hatch='*', zorder=3, label="Autotuned")
+                          color='#ff7c4c', hatch='/', zorder=3, label="Autotuned")
     ymax = plt.ylim()[1]
 
     notch = ymax/30
@@ -155,5 +168,5 @@ for (program_name, info) in program_plots:
 
 plt.legend(bbox_to_anchor=(9.4,-1), loc='lower right', ncol=2, borderaxespad=0.)
 plt.rc('text')
-print('Saving {}...'.format(outputfile))
+print('Rendering {}...'.format(outputfile))
 plt.savefig(outputfile, bbox_inches='tight')
