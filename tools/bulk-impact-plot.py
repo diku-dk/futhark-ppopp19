@@ -66,6 +66,7 @@ def plotting_info(x):
         pass
 
     fut_name = 'benchmarks/{}.fut'.format(filename)
+    baseline_fut_name = 'benchmarks/{}-baseline.fut'.format(filename)
 
     bars = []
     for (dataset_name, dataset_file) in datasets:
@@ -73,10 +74,10 @@ def plotting_info(x):
         incremental_runtime = np.mean(incremental_results[fut_name]['datasets'][dataset_file]['runtimes'])
         incremental_tuned_runtime = np.mean(incremental_tuned_results[fut_name]['datasets'][dataset_file]['runtimes'])
 
-        baseline = moderate_results[fut_name]['datasets'].get(dataset_file)
-
-        if baseline:
-            moderate_runtime = np.mean(baseline['runtimes'])
+        try:
+            moderate_runtime = np.mean(baseline_results[baseline_fut_name]['datasets'][dataset_file]['runtimes'])
+        except KeyError:
+            pass
 
         bars += [(dataset_name, moderate_runtime, incremental_runtime, incremental_tuned_runtime)]
     return (name, bars)
