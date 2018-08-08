@@ -12,8 +12,6 @@
 -- compiled input @ nw-data/large.in.gz
 -- output @ nw-data/large.out.gz
 
-import "/futlib/math"
-
 type int = i32
 
 let B = 16

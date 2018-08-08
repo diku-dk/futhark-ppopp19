@@ -8,8 +8,6 @@
 -- compiled input @ nn-data/n4096_m128
 -- compiled input @ nn-data/n1_m855280
 
-import "/futlib/math"
-
 let emptyRecord: (i32, f32) = (0, 0.0f32)
 
 let nn [m]

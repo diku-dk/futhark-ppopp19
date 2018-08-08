@@ -12,9 +12,6 @@
 -- compiled input @ OptionPricing-data/skewed.in
 -- output @ OptionPricing-data/skewed.out
 
-import "/futlib/math"
-import "/futlib/array"
-
 let grayCode(x: i32): i32 = (x >> 1) ^ x
 
 ----------------------------------------
