@@ -57,9 +57,9 @@ def plot_datasets(handwritten, n, m, k):
     else:
         ylim = 12000
 
-    plt.ylim(ymax=ylim)
+    plt.ylim(ymax=ylim,ymin=0)
     plt.xlabel("$n$", size=20)
-    plt.legend(loc='upper left')
+    plt.legend(loc='upper left', ncol=2, framealpha=1)
 
 handwritten=sys.argv[1]
 outfile=sys.argv[2]
