@@ -26,7 +26,7 @@ def plot_results(dataset):
     data_files, data_names = zip(*datasets())
     plt.gca().grid(True, axis=True, linestyle='-', linewidth='2', color='grey')
 
-    reference = np.mean((json.load(open('results/LocVolCalib-finpar-AllParOpenCLMP.json')))['benchmarks/LocVolCalib.fut']['datasets'][dataset_filename(dataset)]['runtimes'])/1000
+    reference = np.mean((json.load(open('results/LocVolCalib-moderate.json')))['benchmarks/LocVolCalib.fut']['datasets'][dataset_filename(dataset)]['runtimes'])/1000
     def plot_it(progname, fname, offset, **kwargs):
         j = json.load(open(fname))
         all_runtimes = j['benchmarks/{}.fut'.format(progname)]['datasets']
