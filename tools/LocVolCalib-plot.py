@@ -26,13 +26,14 @@ def plot_results(dataset):
     data_files, data_names = zip(*datasets())
     plt.gca().grid(True, axis=True, linestyle='-', linewidth='2', color='grey')
 
+    reference = np.mean((json.load(open('results/LocVolCalib-finpar-AllParOpenCLMP.json')))['benchmarks/LocVolCalib.fut']['datasets'][dataset_filename(dataset)]['runtimes'])/1000
     def plot_it(progname, fname, offset, **kwargs):
         j = json.load(open(fname))
         all_runtimes = j['benchmarks/{}.fut'.format(progname)]['datasets']
         xs = []
         df = dataset_filename(dataset)
-        ys = [np.mean(all_runtimes[df]['runtimes'])/1000]
-        return plt.bar(offset + np.arange(len(ys)) * 8 + 10, ys, **kwargs)[0]
+        ys = [reference/(np.mean(all_runtimes[df]['runtimes'])/1000)]
+        return plt.bar(offset + np.arange(len(ys)) * 4 + 10, ys, **kwargs)[0]
 
     plt.yticks([], [])
     plt.xticks([], [])
@@ -52,23 +53,17 @@ def plot_results(dataset):
              plot_it('LocVolCalib', 'results/LocVolCalib-finpar-AllParOpenCLMP.json', 4,
                      label="FinPar (all parallelism)",
                      color='#8cffd4', hatch='.')]
-    reference = rects[-1].get_height()
+
     slowest = max(map(lambda r: r.get_height(), rects))
 
-    if slowest < 300:
-        ylim = 300
-    elif slowest < 600:
-        ylim = 600
-    elif slowest < 3000:
-        ylim = 3000
-    else:
-        ylim = 6000
-
     for r in rects:
-        plt.text(r.get_x(), r.get_height()+ylim/60, "%.1f" % (r.get_height()/reference))
+        plt.text(r.get_x(), r.get_height(), "$%.1f$" % r.get_height(),
+                 verticalalignment='bottom',
+                 family='sans serif',
+                 size='smaller')
     plt.margins(0.1, 0)
-    plt.xlabel(dataset)
-    plt.ylim(ymax=ylim)
+
+    plt.xlabel("%s (baseline: %dms)" % (dataset, reference))
 
 plt.figure(figsize=(6,1.5))
 plt.subplot(1,3,1)
