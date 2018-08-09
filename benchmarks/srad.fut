@@ -3,8 +3,8 @@
 -- parallel.
 --
 -- ==
--- input @ srad-data/1024-small-images.in
--- input @ srad-data/one-big-image.in
+-- input @ srad-data/D1.in
+-- input @ srad-data/D2.in
 
 module srad = import "srad-baseline"
 

@@ -80,12 +80,12 @@ results/matmul-reference.json: reference/matmul/matmul
 
 benchmarks/pathfinder-data: $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS)
 	mkdir -p $@
-	$(FUTHARK_DATASET) -b -g [391][100][256]i32 > $@/391_100_256.in
+	$(FUTHARK_DATASET) -b -g [1][100][100096]i32 > $@/D1.in
 	$(FUTHARK_C) benchmarks/pathfinder.fut
-	benchmarks/pathfinder -b < $@/391_100_256.in > $@/391_100_256.out
-	$(FUTHARK_DATASET) -b -g [1][100][100096]i32 > $@/1_100_100096.in
+	benchmarks/pathfinder -b < $@/D1.in > $@/D1.out
+	$(FUTHARK_DATASET) -b -g [391][100][256]i32 > $@/D2.in
 	$(FUTHARK_C) benchmarks/pathfinder.fut
-	benchmarks/pathfinder -b < $@/1_100_100096.in > $@/1_100_100096.out
+	benchmarks/pathfinder -b < $@/D2.in > $@/D2.out
 
 LocVolCalib-runtimes.pdf: results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-incremental-tuned.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json tools/LocVolCalib-plot.py
 	python tools/LocVolCalib-plot.py
@@ -128,7 +128,7 @@ rodinia_3.1.tar.bz2:
 	wget http://www.cs.virginia.edu/~kw5na/lava/Rodinia/Packages/Current/rodinia_3.1.tar.bz2
 
 # This is a development rule that users should never use.
-rodinia_3.1-some-instrumentation.patch:
+rodinia_3.1-some-instrumentation.patch: rodinia_3.1-patched
 	diff -pur rodinia_3.1 rodinia_3.1-patched > $@ || true
 
 # Skip the first measurement; we treat it as a warmup run.
@@ -207,14 +207,12 @@ results/%-incremental-tuned.json: tunings/%.json futhark-benchmarks $(FUTHARK_OP
 
 benchmarks/nn-data: $(FUTHARK_DATASET_DEPS)
 	mkdir -p $@
-	N=256 M=2048 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
-	N=1024 M=512 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
-	N=4096 M=128 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
-	N=1 M=855280 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/n$${N}_m$${M}'
+	N=1 M=855280 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/D1.in'
+	N=4096 M=128 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/D2.in'
 
 ## Impact benchmarking
 
-IMPACT_BENCHMARKS=benchmarks/nn.fut benchmarks/pathfinder.fut benchmarks/nw.fut benchmarks/backprop.fut benchmarks/srad.fut benchmarks/lavaMD.fut benchmarks/LocVolCalib.fut benchmarks/OptionPricing.fut benchmarks/heston32.fut
+IMPACT_BENCHMARKS=benchmarks/nn.fut benchmarks/pathfinder.fut benchmarks/nw.fut benchmarks/backprop.fut benchmarks/srad.fut benchmarks/lavaMD.fut benchmarks/OptionPricing.fut benchmarks/heston32.fut
 MODERATE_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-moderate.json)
 INCREMENTAL_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental.json)
 AUTOTUNED_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental-tuned.json)
@@ -222,6 +220,36 @@ BASELINE_RESULTS=results/srad-baseline.json results/backprop-baseline.json
 
 bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) tools/bulk-impact-plot.py
 	tools/bulk-impact-plot.py $@
+
+IMPACT_RODINIA_BENCHMARKS_FULL=nw
+IMPACT_RODINIA_BENCHMARKS_FULL_RESULTS=$(IMPACT_RODINIA_BENCHMARKS_FULL:%=results/%-rodinia.json)
+
+results/backprop-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
+	tools/rodinia_run.sh backprop D1 $(RODINIA_RUNS) > results/backprop-rodinia-D1.runtimes
+	tools/rodinia_run.sh backprop D2 $(RODINIA_RUNS) > results/backprop-rodinia-D2.runtimes
+	tools/raw_rodinia_to_json.py backprop D1 D2 > $@ || rm -f $@
+
+results/nw-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
+	tools/rodinia_run.sh nw D1 $(RODINIA_RUNS) > results/nw-rodinia-D1.runtimes
+	tools/rodinia_run.sh nw D2 $(RODINIA_RUNS) > results/nw-rodinia-D2.runtimes
+	tools/raw_rodinia_to_json.py nw D1 D2 > $@ || rm -f $@
+
+results/lavaMD-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
+	tools/rodinia_run.sh lavaMD D1 $(RODINIA_RUNS) > results/lavaMD-rodinia-D1.runtimes
+	tools/rodinia_run.sh lavaMD D2 $(RODINIA_RUNS) > results/lavaMD-rodinia-D2.runtimes
+	tools/raw_rodinia_to_json.py lavaMD D1 D2 > $@ || rm -f $@
+
+results/nn-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
+	tools/rodinia_run.sh nn D1 $(RODINIA_RUNS) > results/nn-rodinia-D1.runtimes
+	tools/raw_rodinia_to_json.py nn D1 > $@ || rm -f $@
+
+results/srad-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
+	tools/rodinia_run.sh srad D1 $(RODINIA_RUNS) > results/srad-rodinia-D1.runtimes
+	tools/raw_rodinia_to_json.py srad D1 > $@ || rm -f $@
+
+results/pathfinder-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
+	tools/rodinia_run.sh pathfinder D1 $(RODINIA_RUNS) > results/pathfinder-rodinia-D1.runtimes
+	tools/raw_rodinia_to_json.py pathfinder D1 > $@ || rm -f $@
 
 ## Building Futhark
 

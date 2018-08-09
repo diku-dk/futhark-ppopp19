@@ -3,10 +3,8 @@
 --
 -- ==
 --
--- compiled input @ nn-data/n256_m2048
--- compiled input @ nn-data/n1024_m512
--- compiled input @ nn-data/n4096_m128
--- compiled input @ nn-data/n1_m855280
+-- compiled input @ nn-data/D1.in
+-- compiled input @ nn-data/D2.in
 
 let emptyRecord: (i32, f32) = (0, 0.0f32)
 

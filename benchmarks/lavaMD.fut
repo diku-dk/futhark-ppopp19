@@ -2,8 +2,8 @@
 -- https://github.com/kkushagra/rodinia/blob/master/openmp/lavaMD/main.c
 --
 -- ==
--- input @ lavaMD-data/27_64_30.in
--- input @ lavaMD-data/10_100_27.in
+-- input @ lavaMD-data/D1.in
+-- input @ lavaMD-data/D2.in
 
 let dot ((ax,ay,az), (bx,by,bz)): f32 =
   ax*bx + ay*by + az*bz

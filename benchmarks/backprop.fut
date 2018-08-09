@@ -1,9 +1,9 @@
 -- Rodinia's Back-Propagation benchmark translated to Futhark.
 --
 -- ==
--- input @ backprop-data/small.in
--- output @ backprop-data/small.out
--- input @ backprop-data/medium.in
+-- input @ backprop-data/D1.in
+-- output @ backprop-data/D1.out
+-- input @ backprop-data/D2.in
 
 let eta(): f32       = 0.3
 let momentum(): f32  = 0.3

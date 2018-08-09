@@ -2,7 +2,7 @@
 -- reference point for showing the results.
 --
 -- ==
--- input @ srad-data/one-big-image.in
+-- input @ srad-data/D1.in
 
 let indexN(_rows: i32, i: i32): i32 =
   if i == 0 then i else i - 1

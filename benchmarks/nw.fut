@@ -3,14 +3,10 @@
 --
 -- ==
 --
--- compiled input @ nw-data/tiny.in
--- output @ nw-data/tiny.out
--- compiled input @ nw-data/small.in
--- output @ nw-data/small.out
--- compiled input @ nw-data/medium.in.gz
--- output @ nw-data/medium.out.gz
--- compiled input @ nw-data/large.in.gz
--- output @ nw-data/large.out.gz
+-- compiled input @ nw-data/D1.in.gz
+-- output @ nw-data/D1.out.gz
+-- compiled input @ nw-data/D2.in.gz
+-- output @ nw-data/D2.out.gz
 
 type int = i32
 

@@ -3,10 +3,10 @@
 --
 -- ==
 --
--- input @ pathfinder-data/391_100_256.in
--- output @ pathfinder-data/391_100_256.out
--- input @ pathfinder-data/1_100_100096.in
--- output @ pathfinder-data/1_100_100096.out
+-- input @ pathfinder-data/D1.in
+-- output @ pathfinder-data/D1.out
+-- input @ pathfinder-data/D2.in
+-- output @ pathfinder-data/D2.out
 
 let pathfinder [rows][cols] (wall: [rows][cols]i32): [cols]i32 =
   let (_, res) =
