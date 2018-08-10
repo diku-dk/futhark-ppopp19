@@ -40,19 +40,19 @@ def plot_results(dataset):
 
     rects = [plot_it('LocVolCalib', 'results/LocVolCalib-moderate.json', 0,
                      label="moderate flattening",
-                     color='#abedaf', hatch='/'),
+                     color='#abedaf'),
              plot_it('LocVolCalib', 'results/LocVolCalib-incremental.json', 1,
                      label="incremental flattening",
-                     color='#e2f442', hatch='X'),
+                     color='#e2f442'),
              plot_it('LocVolCalib', 'results/LocVolCalib-incremental-tuned.json', 2,
                      label="incremental flattening (auto-tuned)",
-                     color='#ff7c4c', hatch='*'),
+                     color='#ff7c4c'),
              plot_it('LocVolCalib', 'results/LocVolCalib-finpar-OutParOpenCLMP.json', 3,
                      label="FinPar (outer parallelism)",
-                     color='#54c3f2', hatch='o'),
+                     color='#54c3f2'),
              plot_it('LocVolCalib', 'results/LocVolCalib-finpar-AllParOpenCLMP.json', 4,
                      label="FinPar (all parallelism)",
-                     color='#8cffd4', hatch='.')]
+                     color='#8cffd4')]
 
     slowest = max(map(lambda r: r.get_height(), rects))
 

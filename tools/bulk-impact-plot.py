@@ -142,10 +142,10 @@ for (program_name, info) in program_plots:
 
     d1_untuned_rect, d2_untuned_rect = plt.bar([0, 1+offset],
                                                [d1_untuned_speedup, d2_untuned_speedup], width,
-                                               color='#ffcebf', hatch='\\', zorder=3, label="Not autotuned")
+                                               color='#ffcebf', zorder=3, label="Not autotuned")
     d1_tuned_rect, d2_tuned_rect = plt.bar([width, 1 + width + offset],
                                            [d1_tuned_speedup, d2_tuned_speedup], width,
-                                           color='#ff7c4c', hatch='/', zorder=3, label="Autotuned")
+                                           color='#ff7c4c', zorder=3, label="Autotuned")
 
     if d1_rodinia_speedup and d2_rodinia_speedup:
         rodinia_ind = [width*2, 1 + width*2 + offset]
@@ -165,7 +165,7 @@ for (program_name, info) in program_plots:
     if len(rodinia_ind) > 0:
         rodinia_rects = plt.bar(rodinia_ind,
                                 rodinia_speedups, width,
-                                color='#ffac4c', hatch='o', zorder=3, label="Rodinia")
+                                color='#ffac4c', zorder=3, label="Rodinia")
         if d1_rodinia_speedup:
             d1_rodinia_rect = rodinia_rects[0]
             if d2_rodinia_speedup:
@@ -174,7 +174,7 @@ for (program_name, info) in program_plots:
             d2_rodinia_rect = rodinia_rects[0]
     else:
         # Hack to make the legend work.
-        plt.bar([0], [0], 0, color='#ffac4c', hatch='o', zorder=3, label="Rodinia")
+        plt.bar([0], [0], 0, color='#ffac4c', zorder=3, label="Rodinia")
 
     ymin, ymax = plt.ylim()
     notch = ymax/30

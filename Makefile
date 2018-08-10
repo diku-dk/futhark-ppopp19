@@ -31,7 +31,7 @@ FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) 
 
 all: $(FUTHARK_OPENCL_DEPS) rodinia_3.1-patched parboil-patched plots
 
-plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-speedup.pdf bulk-impact-speedup.pdf
+plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-impact-speedup.pdf
 
 matmul-runtimes-large.pdf: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
 	python tools/matmul-plot.py $(MATMUL_REFERENCE) $@ $(MATMUL_SIZES_LARGE)
@@ -218,11 +218,10 @@ INCREMENTAL_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental.j
 AUTOTUNED_RESULTS=$(IMPACT_BENCHMARKS:benchmarks/%.fut=results/%-incremental-tuned.json)
 BASELINE_RESULTS=results/srad-baseline.json results/backprop-baseline.json
 
-bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) tools/bulk-impact-plot.py
-	tools/bulk-impact-plot.py $@
-
-IMPACT_RODINIA_BENCHMARKS_FULL=nw
+IMPACT_RODINIA_BENCHMARKS_FULL=nw backprop lavaMD
 IMPACT_RODINIA_BENCHMARKS_FULL_RESULTS=$(IMPACT_RODINIA_BENCHMARKS_FULL:%=results/%-rodinia.json)
+IMPACT_RODINIA_BENCHMARKS_ONE=nn srad pathfinder
+IMPACT_RODINIA_BENCHMARKS_ONE_RESULTS=$(IMPACT_RODINIA_BENCHMARKS_ONE:%=results/%-rodinia.json)
 
 results/backprop-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
 	tools/rodinia_run.sh backprop D1 $(RODINIA_RUNS) > results/backprop-rodinia-D1.runtimes
@@ -250,6 +249,9 @@ results/srad-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
 results/pathfinder-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
 	tools/rodinia_run.sh pathfinder D1 $(RODINIA_RUNS) > results/pathfinder-rodinia-D1.runtimes
 	tools/raw_rodinia_to_json.py pathfinder D1 > $@ || rm -f $@
+
+bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_ONE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_FULL_RESULTS) tools/bulk-impact-plot.py
+	tools/bulk-impact-plot.py $@
 
 ## Building Futhark
 
