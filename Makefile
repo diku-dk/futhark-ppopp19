@@ -22,8 +22,7 @@ ifeq ($(FUTHARK_DATASET),bin/futhark-dataset)
   FUTHARK_DATASET_DEPS=bin/futhark-dataset
 endif
 
-
-FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS)
+FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --test-limit 5000000
 
 .PHONY: all benchmark clean veryclean
 .SUFFIXES:
