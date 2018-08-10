@@ -1,4 +1,4 @@
--- This corresponds to the large dataset from finpar.
+-- This is based on the large dataset from finpar.
 3       -- contract number 
 500  -- number of Monte-Carlo Iterations
 

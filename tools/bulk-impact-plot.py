@@ -22,8 +22,8 @@ programs = [
      ("10000", "heston32-data/10000_quotes.in")),
     ("OptionPricing",
      "OptionPricing",
-     ("medium", "OptionPricing-data/medium.in"),
-     ("skewed", "OptionPricing-data/skewed.in")),
+     ("D1", "OptionPricing-data/D1.in"),
+     ("D2", "OptionPricing-data/D2.in")),
 
     # Pure ones
     ("Backprop",
@@ -61,7 +61,7 @@ def plotting_info(x):
     incremental_results = json.load(open('results/{}-incremental.json'.format(filename)))
     incremental_tuned_results = json.load(open('results/{}-incremental-tuned.json'.format(filename)))
     baseline_results = {}
-    rodinia_results = {}
+    handwritten_results = {}
 
     try:
         baseline_results = json.load(open('results/{}-baseline.json'.format(filename)))
@@ -69,7 +69,12 @@ def plotting_info(x):
         pass
 
     try:
-        rodinia_results = json.load(open('results/{}-rodinia.json'.format(filename)))
+        handwritten_results = json.load(open('results/{}-rodinia.json'.format(filename)))
+    except:
+        pass
+
+    try:
+        handwritten_results = json.load(open('results/{}-finpar.json'.format(filename)))
     except:
         pass
 
@@ -87,10 +92,10 @@ def plotting_info(x):
             pass
 
         try:
-            rodinia_runtime = np.mean(rodinia_results[fut_name]['datasets'][d]['runtimes'])
+            handwritten_runtime = np.mean(handwritten_results[fut_name]['datasets'][d]['runtimes'])
         except KeyError:
-            rodinia_runtime = None
-        return (moderate_runtime, incremental_runtime, incremental_tuned_runtime, rodinia_runtime)
+            handwritten_runtime = None
+        return (moderate_runtime, incremental_runtime, incremental_tuned_runtime, handwritten_runtime)
 
     return (name, (for_dataset(d1[1]), for_dataset(d2[1])))
 
@@ -116,20 +121,20 @@ for (program_name, info) in program_plots:
     print('Plotting {}...'.format(program_name))
     (d1, d2) = info
     plt.subplot(1, num_programs, i+1)
-    d1_moderate_runtime, d1_untuned_runtime, d1_tuned_runtime, d1_rodinia_runtime = d1
-    d2_moderate_runtime, d2_untuned_runtime, d2_tuned_runtime, d2_rodinia_runtime = d2
+    d1_moderate_runtime, d1_untuned_runtime, d1_tuned_runtime, d1_handwritten_runtime = d1
+    d2_moderate_runtime, d2_untuned_runtime, d2_tuned_runtime, d2_handwritten_runtime = d2
 
     d1_untuned_speedup = d1_moderate_runtime/d1_untuned_runtime
     d1_tuned_speedup = d1_moderate_runtime/d1_tuned_runtime
-    d1_rodinia_speedup = d1_moderate_runtime/d1_rodinia_runtime if d1_rodinia_runtime else None
+    d1_handwritten_speedup = d1_moderate_runtime/d1_handwritten_runtime if d1_handwritten_runtime else None
 
     d2_untuned_speedup = d2_moderate_runtime/d2_untuned_runtime
     d2_tuned_speedup = d2_moderate_runtime/d2_tuned_runtime
-    d2_rodinia_speedup = d2_moderate_runtime/d2_rodinia_runtime if d2_rodinia_runtime else None
+    d2_handwritten_speedup = d2_moderate_runtime/d2_handwritten_runtime if d2_handwritten_runtime else None
 
     plt.gca().get_yaxis().set_visible(False)
 
-    offset = width if d1_rodinia_runtime else 0
+    offset = width if d1_handwritten_runtime else 0
 
     plt.gca().grid(True, axis='y', linestyle='-', linewidth='2', color='grey')
     plt.gca().set_title(program_name)
@@ -147,34 +152,34 @@ for (program_name, info) in program_plots:
                                            [d1_tuned_speedup, d2_tuned_speedup], width,
                                            color='#ff7c4c', zorder=3, label="Autotuned")
 
-    if d1_rodinia_speedup and d2_rodinia_speedup:
-        rodinia_ind = [width*2, 1 + width*2 + offset]
-        rodinia_speedups = [d1_rodinia_speedup, d2_rodinia_speedup]
-    elif d1_rodinia_speedup:
-        rodinia_ind = [width*2]
-        rodinia_speedups = [d1_rodinia_speedup]
-    elif d2_rodinia_speedup:
-        rodinia_ind = [1 + width*2 + offset]
-        rodinia_speedups = [d2_rodinia_speedup]
+    if d1_handwritten_speedup and d2_handwritten_speedup:
+        handwritten_ind = [width*2, 1 + width*2 + offset]
+        handwritten_speedups = [d1_handwritten_speedup, d2_handwritten_speedup]
+    elif d1_handwritten_speedup:
+        handwritten_ind = [width*2]
+        handwritten_speedups = [d1_handwritten_speedup]
+    elif d2_handwritten_speedup:
+        handwritten_ind = [1 + width*2 + offset]
+        handwritten_speedups = [d2_handwritten_speedup]
     else:
-        rodinia_ind = []
-        rodinia_speedups = []
+        handwritten_ind = []
+        handwritten_speedups = []
 
-    d1_rodinia_rect = None
-    d2_rodinia_rect = None
-    if len(rodinia_ind) > 0:
-        rodinia_rects = plt.bar(rodinia_ind,
-                                rodinia_speedups, width,
-                                color='#ffac4c', zorder=3, label="Rodinia")
-        if d1_rodinia_speedup:
-            d1_rodinia_rect = rodinia_rects[0]
-            if d2_rodinia_speedup:
-                d2_rodinia_rect = rodinia_rects[1]
-        elif d2_rodinia_speedup:
-            d2_rodinia_rect = rodinia_rects[0]
+    d1_handwritten_rect = None
+    d2_handwritten_rect = None
+    if len(handwritten_ind) > 0:
+        handwritten_rects = plt.bar(handwritten_ind,
+                                handwritten_speedups, width,
+                                color='#ffac4c', zorder=3, label="Handwritten")
+        if d1_handwritten_speedup:
+            d1_handwritten_rect = handwritten_rects[0]
+            if d2_handwritten_speedup:
+                d2_handwritten_rect = handwritten_rects[1]
+        elif d2_handwritten_speedup:
+            d2_handwritten_rect = handwritten_rects[0]
     else:
         # Hack to make the legend work.
-        plt.bar([0], [0], 0, color='#ffac4c', zorder=3, label="Rodinia")
+        plt.bar([0], [0], 0, color='#ffac4c', zorder=3, label="Handwritten")
 
     ymin, ymax = plt.ylim()
     notch = ymax/30
@@ -195,8 +200,8 @@ for (program_name, info) in program_plots:
     rect_it(d2_untuned_speedup, d2_untuned_rect, d2_untuned_runtime)
     rect_it(d1_tuned_speedup, d1_tuned_rect, d1_tuned_runtime)
     rect_it(d2_tuned_speedup, d2_tuned_rect, d2_tuned_runtime)
-    rect_it(d1_rodinia_speedup, d1_rodinia_rect, d1_rodinia_runtime)
-    rect_it(d2_rodinia_speedup, d2_rodinia_rect, d2_rodinia_runtime)
+    rect_it(d1_handwritten_speedup, d1_handwritten_rect, d1_handwritten_runtime)
+    rect_it(d2_handwritten_speedup, d2_handwritten_rect, d2_handwritten_runtime)
 
     def time(ref):
         if ref > 1000000:

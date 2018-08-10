@@ -8,11 +8,9 @@ import json
 def get(dataset):
     return map(int, open('results/OptionPricing-finpar-{}.raw'.format(dataset)).read().strip().split('\n'))
 
-small = get('small')
-medium = get('medium')
-large = get('large')
+d1 = get('D1')
+d2 = get('D2')
 
-print(json.dumps({'futhark-benchmarks/finpar/OptionPricing.fut':
-                  {'datasets': {'OptionPricing-data/small.in':{'runtimes': small},
-                                'OptionPricing-data/medium.in':{'runtimes': medium},
-                                'OptionPricing-data/large.in':{'runtimes': large}}}}))
+print(json.dumps({'benchmarks/OptionPricing.fut':
+                  {'datasets': {'OptionPricing-data/D1.in':{'runtimes': d1},
+                                'OptionPricing-data/D2.in':{'runtimes': d2}}}}))

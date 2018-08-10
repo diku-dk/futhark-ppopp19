@@ -99,8 +99,14 @@ results/LocVolCalib-AllParOpenCLMP-%.raw: bin/gpuid tools/run-finpar-bench.sh
 results/LocVolCalib-OutParOpenCLMP-%.raw: bin/gpuid tools/run-finpar-bench.sh
 	tools/run-finpar-bench.sh LocVolCalib/OutParOpenCLMP $* > $@ || (rm $@ && exit 1)
 
-results/OptionPricing-finpar.json: results/OptionPricing-finpar-small.raw results/OptionPricing-finpar-medium.raw results/OptionPricing-finpar-large.raw tools/OptionPricing-json.py
-	python tools/OptionPricing-json.py > $@
+results/OptionPricing-finpar.json: results/OptionPricing-finpar-D1.raw results/OptionPricing-finpar-D2.raw
+	python tools/OptionPricing-json.py > $@ || (rm $@ && exit 1)
+
+results/OptionPricing-finpar-D1.raw: bin/gpuid tools/run-finpar-bench.sh
+	tools/run-finpar-OptionPricing.sh D1 > $@ || (rm $@ && exit 1)
+
+results/OptionPricing-finpar-D2.raw: bin/gpuid tools/run-finpar-bench.sh
+	tools/run-finpar-OptionPricing.sh D2 > $@ || (rm $@ && exit 1)
 
 results/OptionPricing-finpar-%.raw: bin/gpuid tools/run-finpar-bench.sh
 	tools/run-finpar-bench.sh OptionPricing/CppOpenCL $* > $@ || (rm $@ && exit 1)
@@ -250,7 +256,7 @@ results/pathfinder-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
 	tools/rodinia_run.sh pathfinder D1 $(RODINIA_RUNS) > results/pathfinder-rodinia-D1.runtimes
 	tools/raw_rodinia_to_json.py pathfinder D1 > $@ || rm -f $@
 
-bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_ONE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_FULL_RESULTS) tools/bulk-impact-plot.py
+bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_ONE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_FULL_RESULTS) tools/bulk-impact-plot.py results/OptionPricing-finpar.json
 	tools/bulk-impact-plot.py $@
 
 ## Building Futhark
