@@ -1,6 +1,6 @@
 diff -pur rodinia_3.1/cuda/myocyte/Makefile rodinia_3.1-patched/cuda/myocyte/Makefile
 --- rodinia_3.1/cuda/myocyte/Makefile	2015-12-11 16:46:06.000000000 +0100
-+++ rodinia_3.1-patched/cuda/myocyte/Makefile	2018-06-25 19:57:47.310610737 +0200
++++ rodinia_3.1-patched/cuda/myocyte/Makefile	2018-08-10 00:17:14.750165271 +0200
 @@ -40,4 +40,4 @@ main.o:	define.c \
  
  # delete all object files
@@ -9,13 +9,13 @@ diff -pur rodinia_3.1/cuda/myocyte/Makefile rodinia_3.1-patched/cuda/myocyte/Mak
 +	rm -f *.o *.out output.txt
 diff -pur rodinia_3.1/cuda/myocyte/run rodinia_3.1-patched/cuda/myocyte/run
 --- rodinia_3.1/cuda/myocyte/run	2015-12-11 16:46:06.000000000 +0100
-+++ rodinia_3.1-patched/cuda/myocyte/run	2018-06-25 19:57:47.341586587 +0200
++++ rodinia_3.1-patched/cuda/myocyte/run	2018-08-10 00:17:14.750165271 +0200
 @@ -1 +1 @@
 -./myocyte.out 100 1 0
 +./myocyte.out 3 65536 1
 diff -pur rodinia_3.1/cuda/myocyte/work_2.cu rodinia_3.1-patched/cuda/myocyte/work_2.cu
 --- rodinia_3.1/cuda/myocyte/work_2.cu	2015-12-11 16:46:06.000000000 +0100
-+++ rodinia_3.1-patched/cuda/myocyte/work_2.cu	2018-06-25 19:57:47.378110165 +0200
++++ rodinia_3.1-patched/cuda/myocyte/work_2.cu	2018-08-10 00:17:14.750165271 +0200
 @@ -9,6 +9,9 @@
  #include "embedded_fehlberg_7_8_2.cu"
  #include "solver_2.cu"
@@ -55,7 +55,7 @@ Only in rodinia_3.1-patched/opencl/backprop: backprop
 Only in rodinia_3.1-patched/opencl/backprop: backprop.o
 diff -pur rodinia_3.1/opencl/backprop/backprop_ocl.cpp rodinia_3.1-patched/opencl/backprop/backprop_ocl.cpp
 --- rodinia_3.1/opencl/backprop/backprop_ocl.cpp	2015-12-11 16:46:38.000000000 +0100
-+++ rodinia_3.1-patched/opencl/backprop/backprop_ocl.cpp	2018-06-25 19:57:47.406166628 +0200
++++ rodinia_3.1-patched/opencl/backprop/backprop_ocl.cpp	2018-08-10 00:17:14.750165271 +0200
 @@ -12,6 +12,7 @@
  	#include <CL/cl.h>
  #endif
@@ -130,7 +130,7 @@ Only in rodinia_3.1-patched/opencl/backprop: facetrain.o
 Only in rodinia_3.1-patched/opencl/backprop: imagenet.o
 diff -pur rodinia_3.1/opencl/backprop/run rodinia_3.1-patched/opencl/backprop/run
 --- rodinia_3.1/opencl/backprop/run	2015-12-11 16:46:38.000000000 +0100
-+++ rodinia_3.1-patched/opencl/backprop/run	2018-08-09 18:04:57.658786636 +0200
++++ rodinia_3.1-patched/opencl/backprop/run	2018-08-10 00:17:14.750165271 +0200
 @@ -1 +1,7 @@
 -./backprop 65536
 \ No newline at end of file
@@ -142,12 +142,9 @@ diff -pur rodinia_3.1/opencl/backprop/run rodinia_3.1-patched/opencl/backprop/ru
 +     *) exit 1 ;;
 +esac
 Only in rodinia_3.1-patched/opencl/backprop: runtimes
-Only in rodinia_3.1-patched/opencl/cfd: density
-Only in rodinia_3.1-patched/opencl/cfd: density_energy
-Only in rodinia_3.1-patched/opencl/cfd: euler3d
 diff -pur rodinia_3.1/opencl/cfd/euler3d.cpp rodinia_3.1-patched/opencl/cfd/euler3d.cpp
 --- rodinia_3.1/opencl/cfd/euler3d.cpp	2015-12-11 16:46:29.000000000 +0100
-+++ rodinia_3.1-patched/opencl/cfd/euler3d.cpp	2018-06-25 19:57:47.498017877 +0200
++++ rodinia_3.1-patched/opencl/cfd/euler3d.cpp	2018-08-10 00:17:14.750165271 +0200
 @@ -12,6 +12,9 @@
  	on 24/03/2011
  ********************************************************************/
@@ -184,11 +181,9 @@ diff -pur rodinia_3.1/opencl/cfd/euler3d.cpp rodinia_3.1-patched/opencl/cfd/eule
  		std::cout << "Saved solution..." << std::endl;
  		_clStatistics();
  		std::cout << "Cleaning up..." << std::endl;
-Only in rodinia_3.1-patched/opencl/cfd: momentum
-Only in rodinia_3.1-patched/opencl/cfd: PD_OCL.txt
 diff -pur rodinia_3.1/opencl/cfd/run rodinia_3.1-patched/opencl/cfd/run
 --- rodinia_3.1/opencl/cfd/run	2015-12-11 16:46:29.000000000 +0100
-+++ rodinia_3.1-patched/opencl/cfd/run	2018-06-25 19:57:47.610864452 +0200
++++ rodinia_3.1-patched/opencl/cfd/run	2018-08-10 00:17:14.750165271 +0200
 @@ -1,3 +1,5 @@
 +#!/bin/sh
 +
@@ -205,11 +200,9 @@ diff -pur rodinia_3.1/opencl/cfd/run rodinia_3.1-patched/opencl/cfd/run
 -#  ./euler3d ../../data/cfd/fvcorr.domn.097K 1
 -done
 +./euler3d ../../data/cfd/fvcorr.domn.193K -d $OPENCL_DEVICE_ID
-Only in rodinia_3.1-patched/opencl/cfd: runtimes
-Binary files rodinia_3.1/opencl/hotspot/hotspot and rodinia_3.1-patched/opencl/hotspot/hotspot differ
 diff -pur rodinia_3.1/opencl/hotspot/hotspot.c rodinia_3.1-patched/opencl/hotspot/hotspot.c
 --- rodinia_3.1/opencl/hotspot/hotspot.c	2015-12-11 16:46:31.000000000 +0100
-+++ rodinia_3.1-patched/opencl/hotspot/hotspot.c	2018-06-25 19:57:47.644765069 +0200
++++ rodinia_3.1-patched/opencl/hotspot/hotspot.c	2018-08-10 00:17:14.750165271 +0200
 @@ -86,10 +86,13 @@ int compute_tran_temp(cl_mem MatrixPower
  	local_work_size[1] = BLOCK_SIZE;
  	
@@ -262,18 +255,13 @@ diff -pur rodinia_3.1/opencl/hotspot/hotspot.c rodinia_3.1-patched/opencl/hotspo
  	printf("Device: %s\n", pbuf);
 diff -pur rodinia_3.1/opencl/hotspot/run rodinia_3.1-patched/opencl/hotspot/run
 --- rodinia_3.1/opencl/hotspot/run	2015-12-11 16:46:31.000000000 +0100
-+++ rodinia_3.1-patched/opencl/hotspot/run	2018-06-25 19:57:47.676697756 +0200
++++ rodinia_3.1-patched/opencl/hotspot/run	2018-08-10 00:17:14.750165271 +0200
 @@ -1 +1 @@
 -./hotspot 512 2 2 ../../data/hotspot/temp_512 ../../data/hotspot/power_512 output.out
 +./hotspot 1024 2 360 ../../data/hotspot/temp_1024 ../../data/hotspot/power_1024 /dev/null
-Only in rodinia_3.1-patched/opencl/hotspot: runtimes
-Binary files rodinia_3.1/opencl/kmeans/cluster.o and rodinia_3.1-patched/opencl/kmeans/cluster.o differ
-Binary files rodinia_3.1/opencl/kmeans/getopt.o and rodinia_3.1-patched/opencl/kmeans/getopt.o differ
-Binary files rodinia_3.1/opencl/kmeans/kmeans and rodinia_3.1-patched/opencl/kmeans/kmeans differ
-Binary files rodinia_3.1/opencl/kmeans/kmeans_clustering.o and rodinia_3.1-patched/opencl/kmeans/kmeans_clustering.o differ
 diff -pur rodinia_3.1/opencl/kmeans/kmeans.cpp rodinia_3.1-patched/opencl/kmeans/kmeans.cpp
 --- rodinia_3.1/opencl/kmeans/kmeans.cpp	2015-12-11 16:46:41.000000000 +0100
-+++ rodinia_3.1-patched/opencl/kmeans/kmeans.cpp	2018-06-25 19:57:47.701138308 +0200
++++ rodinia_3.1-patched/opencl/kmeans/kmeans.cpp	2018-08-10 00:17:14.750165271 +0200
 @@ -67,7 +67,7 @@ static int initialize(int use_gpu)
  	cl_platform_id platform_id;
  	if (clGetPlatformIDs(1, &platform_id, NULL) != CL_SUCCESS) { printf("ERROR: clGetPlatformIDs(1,*,0) failed\n"); return -1; }
@@ -296,7 +284,7 @@ diff -pur rodinia_3.1/opencl/kmeans/kmeans.cpp rodinia_3.1-patched/opencl/kmeans
  	return 0;
 diff -pur rodinia_3.1/opencl/kmeans/Makefile rodinia_3.1-patched/opencl/kmeans/Makefile
 --- rodinia_3.1/opencl/kmeans/Makefile	2015-12-11 16:46:41.000000000 +0100
-+++ rodinia_3.1-patched/opencl/kmeans/Makefile	2018-06-25 19:57:47.724434374 +0200
++++ rodinia_3.1-patched/opencl/kmeans/Makefile	2018-08-10 00:17:14.762165289 +0200
 @@ -22,4 +22,4 @@ rmse.o: rmse.c
  	$(CC) $(CC_FLAGS) rmse.c -c
  
@@ -305,7 +293,7 @@ diff -pur rodinia_3.1/opencl/kmeans/Makefile rodinia_3.1-patched/opencl/kmeans/M
 +	rm -f *.o *~ kmeans *.linkinfo unistd.h
 diff -pur rodinia_3.1/opencl/kmeans/read_input.c rodinia_3.1-patched/opencl/kmeans/read_input.c
 --- rodinia_3.1/opencl/kmeans/read_input.c	2015-12-11 16:46:41.000000000 +0100
-+++ rodinia_3.1-patched/opencl/kmeans/read_input.c	2018-06-25 19:57:47.775282934 +0200
++++ rodinia_3.1-patched/opencl/kmeans/read_input.c	2018-08-10 00:17:14.766165295 +0200
 @@ -82,7 +82,8 @@
  
  extern double wtime(void);
@@ -342,13 +330,9 @@ diff -pur rodinia_3.1/opencl/kmeans/read_input.c rodinia_3.1-patched/opencl/kmea
      
  	//cluster_timing = omp_get_wtime() - cluster_timing;
  
-Binary files rodinia_3.1/opencl/kmeans/read_input.o and rodinia_3.1-patched/opencl/kmeans/read_input.o differ
-Binary files rodinia_3.1/opencl/kmeans/rmse.o and rodinia_3.1-patched/opencl/kmeans/rmse.o differ
-Only in rodinia_3.1-patched/opencl/kmeans: runtimes
-Only in rodinia_3.1/opencl/kmeans: unistd.h
 diff -pur rodinia_3.1/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c rodinia_3.1-patched/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c
 --- rodinia_3.1/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c	2015-12-11 16:46:33.000000000 +0100
-+++ rodinia_3.1-patched/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c	2018-06-25 19:57:47.803858597 +0200
++++ rodinia_3.1-patched/opencl/lavaMD/kernel/kernel_gpu_opencl_wrapper.c	2018-08-10 00:17:14.766165295 +0200
 @@ -1,3 +1,7 @@
 +#include <unistd.h>
 +#include <sys/time.h>
@@ -407,7 +391,7 @@ Only in rodinia_3.1-patched/opencl/lavaMD/kernel: kernel_gpu_opencl_wrapper.o
 Only in rodinia_3.1-patched/opencl/lavaMD: lavaMD
 diff -pur rodinia_3.1/opencl/lavaMD/main.c rodinia_3.1-patched/opencl/lavaMD/main.c
 --- rodinia_3.1/opencl/lavaMD/main.c	2015-12-11 16:46:33.000000000 +0100
-+++ rodinia_3.1-patched/opencl/lavaMD/main.c	2018-06-25 19:57:47.827841015 +0200
++++ rodinia_3.1-patched/opencl/lavaMD/main.c	2018-08-10 00:17:14.766165295 +0200
 @@ -254,8 +254,8 @@ main(	int argc,
  	//	PARAMETERS, DISTANCE, CHARGE AND FORCE
  	//====================================================================================================100
@@ -419,10 +403,22 @@ diff -pur rodinia_3.1/opencl/lavaMD/main.c rodinia_3.1-patched/opencl/lavaMD/mai
  
  	// input (distances)
  	rv_cpu = (FOUR_VECTOR*)malloc(dim_cpu.space_mem);
+diff -pur rodinia_3.1/opencl/lavaMD/main.h rodinia_3.1-patched/opencl/lavaMD/main.h
+--- rodinia_3.1/opencl/lavaMD/main.h	2015-12-11 16:46:33.000000000 +0100
++++ rodinia_3.1-patched/opencl/lavaMD/main.h	2018-08-11 15:40:28.766170961 +0200
+@@ -8,7 +8,7 @@
+ 
+ #define fp float
+ 
+-#define NUMBER_PAR_PER_BOX 100							// keep this low to allow more blocks that share shared memory to run concurrently, code does not work for larger than 110, more speedup can be achieved with larger number and no shared memory used
++#define NUMBER_PAR_PER_BOX 50							// keep this low to allow more blocks that share shared memory to run concurrently, code does not work for larger than 110, more speedup can be achieved with larger number and no shared memory used
+ 
+ //#define NUMBER_THREADS 128								// this should be roughly equal to NUMBER_PAR_PER_BOX for best performance
+ // Parameterized work group size
 Only in rodinia_3.1-patched/opencl/lavaMD: main.o
 diff -pur rodinia_3.1/opencl/lavaMD/makefile rodinia_3.1-patched/opencl/lavaMD/makefile
 --- rodinia_3.1/opencl/lavaMD/makefile	2015-12-11 16:46:33.000000000 +0100
-+++ rodinia_3.1-patched/opencl/lavaMD/makefile	2018-06-25 19:57:47.852739638 +0200
++++ rodinia_3.1-patched/opencl/lavaMD/makefile	2018-08-11 15:33:18.733762722 +0200
 @@ -82,7 +82,7 @@ main.o:		main.h \
  
  # delete all object and executable files
@@ -434,7 +430,7 @@ diff -pur rodinia_3.1/opencl/lavaMD/makefile rodinia_3.1-patched/opencl/lavaMD/m
  		./util/timer/*.o \
 diff -pur rodinia_3.1/opencl/lavaMD/run rodinia_3.1-patched/opencl/lavaMD/run
 --- rodinia_3.1/opencl/lavaMD/run	2015-12-11 16:46:33.000000000 +0100
-+++ rodinia_3.1-patched/opencl/lavaMD/run	2018-08-09 22:45:56.368794244 +0200
++++ rodinia_3.1-patched/opencl/lavaMD/run	2018-08-10 00:17:14.766165295 +0200
 @@ -1 +1,7 @@
 -./lavaMD -boxes1d 10
 \ No newline at end of file
@@ -451,7 +447,7 @@ Only in rodinia_3.1-patched/opencl/lavaMD/util/opencl: opencl.o
 Only in rodinia_3.1-patched/opencl/lavaMD/util/timer: timer.o
 diff -pur rodinia_3.1/opencl/nn/clutils.cpp rodinia_3.1-patched/opencl/nn/clutils.cpp
 --- rodinia_3.1/opencl/nn/clutils.cpp	2015-12-11 16:46:29.000000000 +0100
-+++ rodinia_3.1-patched/opencl/nn/clutils.cpp	2018-06-25 19:57:47.877442633 +0200
++++ rodinia_3.1-patched/opencl/nn/clutils.cpp	2018-08-10 00:17:14.766165295 +0200
 @@ -199,7 +199,7 @@ cl_context cl_init(char devicePreference
      //printf("Enter Platform and Device No (Seperated by Space) \n");
      //scanf("%d %d", &chosen_platform, &chosen_device); 
@@ -463,7 +459,7 @@ diff -pur rodinia_3.1/opencl/nn/clutils.cpp rodinia_3.1-patched/opencl/nn/clutil
      // Do a sanity check of platform/device selection
 diff -pur rodinia_3.1/opencl/nn/filelist.txt rodinia_3.1-patched/opencl/nn/filelist.txt
 --- rodinia_3.1/opencl/nn/filelist.txt	2015-12-11 16:46:30.000000000 +0100
-+++ rodinia_3.1-patched/opencl/nn/filelist.txt	2018-06-25 19:57:47.901577202 +0200
++++ rodinia_3.1-patched/opencl/nn/filelist.txt	2018-08-10 00:17:14.766165295 +0200
 @@ -2,4 +2,79 @@
  ../../data/nn/cane4_1.db
  ../../data/nn/cane4_2.db
@@ -547,7 +543,7 @@ diff -pur rodinia_3.1/opencl/nn/filelist.txt rodinia_3.1-patched/opencl/nn/filel
 +../../data/nn/cane4_3.db
 diff -pur rodinia_3.1/opencl/nn/nearestNeighbor.cpp rodinia_3.1-patched/opencl/nn/nearestNeighbor.cpp
 --- rodinia_3.1/opencl/nn/nearestNeighbor.cpp	2015-12-11 16:46:29.000000000 +0100
-+++ rodinia_3.1-patched/opencl/nn/nearestNeighbor.cpp	2018-06-25 19:57:47.927996852 +0200
++++ rodinia_3.1-patched/opencl/nn/nearestNeighbor.cpp	2018-08-10 00:17:14.766165295 +0200
 @@ -3,7 +3,51 @@
  
  #include "nearestNeighbor.h"
@@ -687,7 +683,7 @@ diff -pur rodinia_3.1/opencl/nn/nearestNeighbor.cpp rodinia_3.1-patched/opencl/n
 Binary files rodinia_3.1/opencl/nn/nn and rodinia_3.1-patched/opencl/nn/nn differ
 diff -pur rodinia_3.1/opencl/nn/run rodinia_3.1-patched/opencl/nn/run
 --- rodinia_3.1/opencl/nn/run	2015-12-11 16:46:30.000000000 +0100
-+++ rodinia_3.1-patched/opencl/nn/run	2018-06-25 19:57:47.952839356 +0200
++++ rodinia_3.1-patched/opencl/nn/run	2018-08-10 00:17:14.766165295 +0200
 @@ -1 +1 @@
 -./nn filelist.txt -r 5 -lat 30 -lng 90
 \ No newline at end of file
@@ -696,7 +692,7 @@ Only in rodinia_3.1-patched/opencl/nn: runtimes
 Binary files rodinia_3.1/opencl/nw/nw and rodinia_3.1-patched/opencl/nw/nw differ
 diff -pur rodinia_3.1/opencl/nw/nw.c rodinia_3.1-patched/opencl/nw/nw.c
 --- rodinia_3.1/opencl/nw/nw.c	2015-12-11 16:46:34.000000000 +0100
-+++ rodinia_3.1-patched/opencl/nw/nw.c	2018-08-09 21:19:46.946338451 +0200
++++ rodinia_3.1-patched/opencl/nw/nw.c	2018-08-10 00:17:14.766165295 +0200
 @@ -308,6 +308,12 @@ int main(int argc, char **argv){
  	clSetKernelArg(kernel2, 10, sizeof(cl_int), (void*) &offset_r);
  	clSetKernelArg(kernel2, 11, sizeof(cl_int), (void*) &offset_c);
@@ -725,20 +721,20 @@ diff -pur rodinia_3.1/opencl/nw/nw.c rodinia_3.1-patched/opencl/nw/nw.c
  	clFinish(cmd_queue);
 diff -pur rodinia_3.1/opencl/nw/run rodinia_3.1-patched/opencl/nw/run
 --- rodinia_3.1/opencl/nw/run	2015-12-11 16:46:34.000000000 +0100
-+++ rodinia_3.1-patched/opencl/nw/run	2018-08-09 21:16:26.400732149 +0200
++++ rodinia_3.1-patched/opencl/nw/run	2018-08-10 10:22:36.776193630 +0200
 @@ -1 +1,7 @@
 -./nw 2048 10 ./nw.cl
 +#!/bin/sh
 +
 +case $1 in
-+     D1) ./nw 1024 10 ./nw.cl ;;
-+     D2) ./nw 1536 10 ./nw.cl ;;
++     D1) ./nw 1536 10 ./nw.cl ;;
++     D2) ./nw 1024 10 ./nw.cl ;;
 +     *) exit 1 ;;
 +esac
 Only in rodinia_3.1-patched/opencl/nw: runtimes
 diff -pur rodinia_3.1/opencl/pathfinder/main.cpp rodinia_3.1-patched/opencl/pathfinder/main.cpp
 --- rodinia_3.1/opencl/pathfinder/main.cpp	2015-12-11 16:46:29.000000000 +0100
-+++ rodinia_3.1-patched/opencl/pathfinder/main.cpp	2018-08-09 22:12:26.598148115 +0200
++++ rodinia_3.1-patched/opencl/pathfinder/main.cpp	2018-08-10 00:17:14.766165295 +0200
 @@ -17,6 +17,9 @@
  #include <iostream>
  #include "OpenCL.h"
@@ -796,7 +792,7 @@ diff -pur rodinia_3.1/opencl/pathfinder/main.cpp rodinia_3.1-patched/opencl/path
 Only in rodinia_3.1-patched/opencl/pathfinder: main.o
 diff -pur rodinia_3.1/opencl/pathfinder/makefile rodinia_3.1-patched/opencl/pathfinder/makefile
 --- rodinia_3.1/opencl/pathfinder/makefile	2015-12-11 16:46:29.000000000 +0100
-+++ rodinia_3.1-patched/opencl/pathfinder/makefile	2018-06-25 19:57:48.008576883 +0200
++++ rodinia_3.1-patched/opencl/pathfinder/makefile	2018-08-10 00:17:14.766165295 +0200
 @@ -16,5 +16,4 @@ main.o: main.cpp OpenCL.cpp kernels.cl
  	$(CXX) $(CXXFLAGS) main.cpp OpenCL.cpp
  
@@ -805,7 +801,7 @@ diff -pur rodinia_3.1/opencl/pathfinder/makefile rodinia_3.1-patched/opencl/path
  	@rm -f pathfinder *.o *.out *~ *\#
 diff -pur rodinia_3.1/opencl/pathfinder/OpenCL.cpp rodinia_3.1-patched/opencl/pathfinder/OpenCL.cpp
 --- rodinia_3.1/opencl/pathfinder/OpenCL.cpp	2015-12-11 16:46:29.000000000 +0100
-+++ rodinia_3.1-patched/opencl/pathfinder/OpenCL.cpp	2018-06-25 19:57:48.031880131 +0200
++++ rodinia_3.1-patched/opencl/pathfinder/OpenCL.cpp	2018-08-10 00:17:14.770165301 +0200
 @@ -274,7 +274,7 @@ void OpenCL::getDevices(cl_device_type d
  	}
   
@@ -834,7 +830,7 @@ Only in rodinia_3.1-patched/opencl/pathfinder: result.txt
 Only in rodinia_3.1-patched/opencl/pathfinder: runtimes
 diff -pur rodinia_3.1/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c rodinia_3.1-patched/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c
 --- rodinia_3.1/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c	2015-12-11 16:46:39.000000000 +0100
-+++ rodinia_3.1-patched/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c	2018-06-25 19:57:48.057576355 +0200
++++ rodinia_3.1-patched/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c	2018-08-10 00:17:14.770165301 +0200
 @@ -1,3 +1,9 @@
 +#include <stdlib.h>
 +#include <sys/time.h>
@@ -888,7 +884,7 @@ diff -pur rodinia_3.1/opencl/srad/kernel/kernel_gpu_opencl_wrapper.c rodinia_3.1
 Only in rodinia_3.1-patched/opencl/srad/kernel: kernel_gpu_opencl_wrapper.o
 diff -pur rodinia_3.1/opencl/srad/main.c rodinia_3.1-patched/opencl/srad/main.c
 --- rodinia_3.1/opencl/srad/main.c	2015-12-11 16:46:39.000000000 +0100
-+++ rodinia_3.1-patched/opencl/srad/main.c	2018-06-25 19:57:48.104141119 +0200
++++ rodinia_3.1-patched/opencl/srad/main.c	2018-08-10 00:17:14.770165301 +0200
 @@ -222,12 +222,14 @@ main(	int argc,
  	// 	WRITE OUTPUT IMAGE TO FILE
  	//======================================================================================================================================================150
@@ -921,7 +917,7 @@ diff -pur rodinia_3.1/opencl/srad/main.c rodinia_3.1-patched/opencl/srad/main.c
 Only in rodinia_3.1-patched/opencl/srad: main.o
 diff -pur rodinia_3.1/opencl/srad/makefile rodinia_3.1-patched/opencl/srad/makefile
 --- rodinia_3.1/opencl/srad/makefile	2015-12-11 16:46:38.000000000 +0100
-+++ rodinia_3.1-patched/opencl/srad/makefile	2018-06-25 19:57:48.129198634 +0200
++++ rodinia_3.1-patched/opencl/srad/makefile	2018-08-10 00:17:14.770165301 +0200
 @@ -79,7 +79,7 @@ OCL_LIB = -lOpenCL
  			$(OCL_INC_DIR)
  
@@ -939,7 +935,7 @@ Only in rodinia_3.1-patched/opencl/srad/util/opencl: opencl.o
 Only in rodinia_3.1-patched/opencl/srad/util/timer: timer.o
 diff -pur rodinia_3.1/README rodinia_3.1-patched/README
 --- rodinia_3.1/README	2015-12-13 04:42:33.000000000 +0100
-+++ rodinia_3.1-patched/README	2018-06-25 19:57:48.153089499 +0200
++++ rodinia_3.1-patched/README	2018-08-10 00:17:14.770165301 +0200
 @@ -1,3 +1,7 @@
 +NOTICE: this tree has been modified by the futhark-icfp18 Makefile to
 +add consistent timing to some benchmark implementations and fix the
