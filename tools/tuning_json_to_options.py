@@ -9,4 +9,7 @@ import sys
 
 j = json.load(sys.stdin)
 for p in j:
-    sys.stdout.write("--pass-option --size=%s=%s " % (p, j[p]))
+    if len(sys.argv) == 1:
+        sys.stdout.write("--pass-option --size=%s=%s " % (p, j[p]))
+    else:
+        sys.stdout.write("--size=%s=%s " % (p, j[p]))
