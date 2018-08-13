@@ -212,14 +212,14 @@ for (program_name, info) in program_plots:
             return "${}ms$".format(int(ref/1000))
 
 
-    plt.text(d1_untuned_rect.get_x() + width + offset/2, -6*notch, 'D1',
-             ha='center', va='baseline', weight='bold', size='larger')
-    plt.text(d1_untuned_rect.get_x() + width + offset/2, -12*notch, time(d1_moderate_runtime),
+    plt.text(d1_untuned_rect.get_x() + width + offset/2, -6*notch, time(d1_moderate_runtime),
              ha='center', va='baseline', weight='bold')
-    plt.text(d2_untuned_rect.get_x() + width + offset/2, -6*notch, 'D2',
+    plt.text(d1_untuned_rect.get_x() + width + offset/2, -12*notch, 'D1',
              ha='center', va='baseline', weight='bold', size='larger')
-    plt.text(d2_untuned_rect.get_x() + width + offset/2, -12*notch, time(d2_moderate_runtime),
+    plt.text(d2_untuned_rect.get_x() + width + offset/2, -6*notch, time(d2_moderate_runtime),
              ha='center', va='baseline', weight='bold')
+    plt.text(d2_untuned_rect.get_x() + width + offset/2, -12*notch, 'D2',
+             ha='center', va='baseline', weight='bold', size='larger')
 
     i += 1
 
