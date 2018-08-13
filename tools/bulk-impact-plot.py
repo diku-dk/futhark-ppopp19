@@ -223,7 +223,7 @@ for (program_name, info) in program_plots:
 
     i += 1
 
-plt.legend(bbox_to_anchor=(0,-1), loc='lower right', ncol=3, borderaxespad=0.)
+plt.legend(bbox_to_anchor=(0,-0.7), loc='lower right', ncol=3, borderaxespad=0.)
 plt.rc('text')
 print('Rendering {}...'.format(outputfile))
 plt.savefig(outputfile, bbox_inches='tight')
