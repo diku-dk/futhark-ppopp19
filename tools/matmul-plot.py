@@ -68,5 +68,5 @@ m=int(sys.argv[4])
 k=int(sys.argv[5])
 
 plot_datasets(handwritten, n, m, k)
-plt.gcf().set_size_inches(8, 4)
+plt.gcf().set_size_inches(6, 3)
 plt.savefig(outfile, bbox_inches='tight')

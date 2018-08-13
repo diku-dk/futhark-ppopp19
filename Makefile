@@ -66,7 +66,7 @@ benchmarks/matmul-data:
 ifeq ($(USE_CUBLAS),1)
 reference/matmul/matmul: reference/matmul/matmul-cublas.cu
 	$(NVCC) $< -o $@ -lcublas
-MATMUL_REFERENCE=CUBLAS
+MATMUL_REFERENCE=cuBLAS
 else
 reference/matmul/matmul: reference/matmul/matmul.c
 	$(CC) $< -o $@ $(CFLAGS)
