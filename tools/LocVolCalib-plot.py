@@ -39,13 +39,13 @@ def plot_results(dataset):
     plt.xticks([], [])
 
     rects = [plot_it('LocVolCalib', 'results/LocVolCalib-moderate.json', 0,
-                     label="moderate flattening",
+                     label="MF",
                      color='#abedaf'),
              plot_it('LocVolCalib', 'results/LocVolCalib-incremental.json', 1,
-                     label="incremental flattening",
+                     label="IF",
                      color='#e2f442'),
              plot_it('LocVolCalib', 'results/LocVolCalib-incremental-tuned.json', 2,
-                     label="incremental flattening (auto-tuned)",
+                     label="AIF",
                      color='#ff7c4c'),
              plot_it('LocVolCalib', 'results/LocVolCalib-finpar-OutParOpenCLMP.json', 3,
                      label="FinPar (outer parallelism)",
@@ -65,13 +65,13 @@ def plot_results(dataset):
 
     plt.xlabel("%s (baseline: %dms)" % (dataset, reference))
 
-plt.figure(figsize=(6,1.5))
+plt.figure(figsize=(6,1))
 plt.subplot(1,3,1)
 plot_results('small')
 plt.subplot(1,3,2)
 plot_results('medium')
 plt.subplot(1,3,3)
 plot_results('large')
-plt.legend(bbox_to_anchor=(-0.7,-0.2), loc='upper center', ncol=2, borderaxespad=0.)
+plt.legend(bbox_to_anchor=(-0.7,-0.3), loc='upper center', ncol=2, borderaxespad=0.)
 
 plt.savefig("LocVolCalib-runtimes.pdf", bbox_inches='tight')
