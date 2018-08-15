@@ -32,11 +32,11 @@ all: $(FUTHARK_OPENCL_DEPS) rodinia_3.1-patched parboil-patched plots
 
 plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-impact-speedup.pdf
 
-matmul-runtimes-large.pdf: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
-	python tools/matmul-plot.py $(MATMUL_REFERENCE) $@ $(MATMUL_SIZES_LARGE)
+matmul-runtimes-large.pdf matmul-runtimes-large.tex: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
+	python tools/matmul-plot.py $(MATMUL_REFERENCE) matmul-runtimes-large.pdf matmul-runtimes-large.tex $(MATMUL_SIZES_LARGE)
 
-matmul-runtimes-small.pdf: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
-	python tools/matmul-plot.py $(MATMUL_REFERENCE) $@ $(MATMUL_SIZES_SMALL)
+matmul-runtimes-small.pdf matmul-runtimes-small.tex: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
+	python tools/matmul-plot.py $(MATMUL_REFERENCE) matmul-runtimes-small.pdf matmul-runtimes-small.tex $(MATMUL_SIZES_SMALL)
 
 # General rules for running the simple cases of benchmarks.
 results/%-moderate.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
