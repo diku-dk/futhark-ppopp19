@@ -21,7 +21,9 @@ dataset=$1
 
 gpuid=$(bin/gpuid "$FUTHARK_OPENCL_DEVICE")
 
-sed 's/^GPU_DEVICE_ID=.*$/GPU_DEVICE_ID='$gpuid'/' -i finpar/platform.mk
+new_platform=$(sed 's/^GPU_DEVICE_ID=.*$/GPU_DEVICE_ID='$gpuid'/' finpar/platform.mk)
+echo "$new_platform" > finpar/platform.mk
+echo "$new_platform" > finpar/platform.macbookpro.mk
 
 echo "Putting debug output for $benchmark ($dataset) in finpar.log" >&2
 (cd finpar/$benchmark && make 2>&1) >> finpar.log
