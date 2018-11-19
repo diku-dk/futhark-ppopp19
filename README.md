@@ -12,11 +12,15 @@ installed on the local system.  Specifically, we require:
     tend to work.
 
   * The OpenTuner Python libraries must be installed, which can be
-    done with `pip install opentuner`.
+    done with `pip install --user opentuner`.
 
   * OpenTuner depends on [SQLite](https://www.sqlite.org/index.html),
     which must also be installed.  SQLite can be found in the package
     system of virtually any Linux distribution.
+
+  * Generating the graphs requires
+    [Matplotlib](https://matplotlib.org/) for Python, as well as a
+    working LaTeX setup.
 
 ## Usage
 
@@ -80,7 +84,7 @@ suite was designed for.
 You will also need [OpenTuner] installed.  This is usually
 accomplished simply by running
 
-    pip install opentuner
+    pip install --user opentuner
 
 [OpenTuner]: http://opentuner.org/
 
