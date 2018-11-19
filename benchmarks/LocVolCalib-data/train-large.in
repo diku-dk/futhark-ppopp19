@@ -1,7 +1,7 @@
 512     -- OUTER -- no restrictions 
 128     -- NUM_X -- 2^x, where x \in {5, ..., 9} 
 128     -- NUM_Y -- 2^x, where x \in {5, ..., 9} 
-64      -- NUM_T -- no restrictions  
+8       -- NUM_T -- no restrictions  
 0.03 --s0
 5.0 -- t
 0.2 -- alpha
