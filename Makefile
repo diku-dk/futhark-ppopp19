@@ -258,4 +258,4 @@ clean:
 	rm -rf bin benchmarks/*.expected benchmarks/*.actual benchmarks/*-c benchmarks/matmul-data benchmarks/pathfinder-data benchmarks/nn-data tunings results *.pdf finpar.log
 
 veryclean: clean
-	rm -rf  rodinia_3.1-patched *.tgz *.tar.gz futhark finpar futhark-benchmarks
+	rm -rf  rodinia_3.1-patched *.tgz *.tar.gz futhark finpar
