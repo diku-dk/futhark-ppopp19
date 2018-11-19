@@ -1,6 +1,24 @@
 **IMPORTANT: IF YOU CLONE THIS REPOSITORY, USE `--recursive`, OR INITIALISE GIT SUBMODULES MANUALLY AFTERWARDS.**
 
-# Experimental infrastructure for ICFP'18 paper
+# Experimental infrastructure for PPOPP'19 paper
+
+Due to issues with making OpenCL/CUDA available in a VM image, this
+infrastructure depends on some fairly common tools and libraries being
+installed on the local system.  Specifically, we require:
+
+  * [The Haskell Tool Stack](https://docs.haskellstack.org) for
+    building the Futhark compiler itself.  The [installation
+    instructions](https://docs.haskellstack.org/en/stable/README/#how-to-install)
+    tend to work.
+
+  * The OpenTuner Python libraries must be installed, which can be
+    done with `pip install opentuner`.
+
+  * OpenTuner depends on [SQLite](https://www.sqlite.org/index.html),
+    which must also be installed.  SQLite can be found in the package
+    system of virtually any Linux distribution.
+
+## Usage
 
 Ideally, run `make` and everything will happen.  All external
 resources are automatically be downloaded with `git` and `wget` if
@@ -71,21 +89,16 @@ accomplished simply by running
 In case not the entire suite able to execute on a given system, there
 are some useful sub-targets that can be used to run just parts:
 
-  `make fft-runtimes.pdf`: run the FFT benchmark.
-
   `make matmul-runtimes-large.pdf` and `make
   matmul-runtimes-small.pdf`: run the matrix multiplication benchmark.
 
   `LocVolCalib-runtimes.pdf`: run the LocVolCalib benchmark.
 
-  `bulk-speedup.pdf`: run both Futhark and reference versions of the
-  various Rodinia and Parboil benchmarks.  This is perhaps the one
-  most likely to fail, as it involves a significant amount of third
-  party code, not all of which was designed with benchmarking and
-  portability in mind.
-
-  `bulk-impact-speedup.pdf`: run the OptionPricing and NN benchmarks
-  on a variety of data sets.
+  `bulk-impact-speedup.pdf`: run both Futhark and reference versions
+  of the various Rodinia and Parboil benchmarks.  This is perhaps the
+  one most likely to fail, as it involves a significant amount of
+  third party code, not all of which was designed with benchmarking
+  and portability in mind.
 
   `veryclean`: like `clean`, but removes even the parts that have been
   downloaded externally.
