@@ -4,6 +4,3 @@
 [submodule "finpar"]
 	path = finpar
 	url = https://github.com/HIPERFIT/finpar.git
-[submodule "futhark-benchmarks"]
-	path = futhark-benchmarks
-	url = https://github.com/diku-dk/futhark-benchmarks.git

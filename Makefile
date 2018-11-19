@@ -22,13 +22,19 @@ ifeq ($(FUTHARK_DATASET),bin/futhark-dataset)
   FUTHARK_DATASET_DEPS=bin/futhark-dataset
 endif
 
-FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --test-limit 500000
+ifeq ($(FUTHARK_BENCH),bin/futhark-bench)
+  FUTHARK_BENCH_DEPS=bin/futhark-bench
+endif
+
+FUTHARK_DEPS=$(FUTHARK_OPENCL_DEPS) $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS) $(FUTHARK_BENCH_DEPS)
+
+FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune --futhark-bench=$(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --test-limit 500000
 
 .PHONY: all benchmark clean veryclean
 .SUFFIXES:
 .SECONDARY:
 
-all: $(FUTHARK_OPENCL_DEPS) rodinia_3.1-patched parboil-patched plots
+all: $(FUTHARK_DEPS) rodinia_3.1-patched parboil-patched plots
 
 plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-impact-speedup.pdf
 
@@ -39,19 +45,19 @@ matmul-runtimes-small.pdf matmul-runtimes-small.tex: results/matmul-moderate.jso
 	python tools/matmul-plot.py $(MATMUL_REFERENCE) matmul-runtimes-small.pdf matmul-runtimes-small.tex $(MATMUL_SIZES_SMALL)
 
 # General rules for running the simple cases of benchmarks.
-results/%-moderate.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+results/%-moderate.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_DEPS)
 	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
-results/%-baseline.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+	$(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
+results/%-baseline.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_DEPS)
 	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*-baseline.fut --json $@
-results/%-incremental.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_OPENCL_DEPS)
+	$(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*-baseline.fut --json $@
+results/%-incremental.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_DEPS)
 	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
-results/%-incremental-tuned.json: benchmarks/%.fut benchmarks/%-data futhark $(FUTHARK_OPENCL_DEPS)
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
+results/%-incremental-tuned.json: benchmarks/%.fut benchmarks/%-data futhark $(FUTHARK_DEPS)
 	mkdir -p results tunings
 	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/$*.fut $(FUTHARK_BENCH_OPENCL_OPTIONS) --save-json tunings/$*.json
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
 
 # You will also have to modify the data set stanzas in
 # benchmarks/matmul.fut if you change these.
@@ -77,7 +83,7 @@ results/matmul-reference.json: reference/matmul/matmul
 	mkdir -p results
 	(cd reference/matmul; ./matmul ../../$@ $(MATMUL_SIZES_LARGE) $(MATMUL_SIZES_SMALL)) || rm $@
 
-benchmarks/pathfinder-data: $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS)
+benchmarks/pathfinder-data: $(FUTHARK_DEPS)
 	mkdir -p $@
 	$(FUTHARK_DATASET) -b -g [1][100][100096]i32 > $@/D1.in
 	$(FUTHARK_C) benchmarks/pathfinder.fut
@@ -176,23 +182,23 @@ results/tpacf-parboil.runtimes: bin/gpuid parboil-patched
 
 ## Bulk (impact) benchmarking
 
-results/%-moderate.json: benchmarks/%-data futhark-benchmarks $(FUTHARK_OPENCL_DEPS)
+results/%-moderate.json: benchmarks/%-data $(FUTHARK_DEPS)
 	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
+	$(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
 
-results/%-incremental.json: benchmarks/%-data futhark-benchmarks $(FUTHARK_OPENCL_DEPS)
+results/%-incremental.json: benchmarks/%-data $(FUTHARK_DEPS)
 	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
 
-tunings/%.json: benchmarks/%-data futhark futhark-benchmarks $(FUTHARK_OPENCL_DEPS)
+tunings/%.json: benchmarks/%-data futhark $(FUTHARK_DEPS)
 	mkdir -p tunings
 	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/$*.fut --save-json tunings/$*.json
 
-results/%-incremental-tuned.json: tunings/%.json futhark-benchmarks $(FUTHARK_OPENCL_DEPS)
+results/%-incremental-tuned.json: tunings/%.json $(FUTHARK_DEPS)
 	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
 
-benchmarks/nn-data: $(FUTHARK_DATASET_DEPS)
+benchmarks/nn-data: $(FUTHARK_DEPS)
 	mkdir -p $@
 	N=1 M=855280 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/D1.in'
 	N=4096 M=128 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/D2.in'
@@ -258,4 +264,4 @@ clean:
 	rm -rf bin benchmarks/*.expected benchmarks/*.actual benchmarks/*-c benchmarks/matmul-data benchmarks/pathfinder-data benchmarks/nn-data tunings results *.pdf finpar.log
 
 veryclean: clean
-	rm -rf  rodinia_3.1-patched *.tgz *.tar.gz futhark finpar futhark-benchmarks
+	rm -rf  rodinia_3.1-patched *.tgz *.tar.gz futhark finpar

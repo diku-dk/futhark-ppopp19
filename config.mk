@@ -35,4 +35,7 @@ FUTHARK_C=bin/futhark-c
 # Same behaviour as FUTHARK_OPENCL.
 FUTHARK_DATASET=bin/futhark-dataset
 
+# Same behaviour as FUTHARK_OPENCL.
+FUTHARK_BENCH=bin/futhark-bench
+
 export
