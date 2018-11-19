@@ -174,24 +174,6 @@ results/stencil-parboil.runtimes: bin/gpuid parboil-patched
 results/tpacf-parboil.runtimes: bin/gpuid parboil-patched
 	tools/parboil_run.sh tpacf opencl_nvidia large 10 > $@
 
-## Bulk benchmarking
-
-results/bulk-reference.json: tools/bulk-json.py results/backprop-rodinia.runtimes results/hotspot-rodinia.runtimes results/cfd-rodinia.runtimes results/kmeans-rodinia.runtimes results/lavaMD-rodinia.runtimes results/nn-rodinia.runtimes results/pathfinder-rodinia.runtimes results/srad-rodinia.runtimes results/OptionPricing-finpar.json results/mri-q-parboil.runtimes results/stencil-parboil.runtimes results/tpacf-parboil.runtimes
-	tools/bulk-json.py > $@
-
-BULK_BENCHMARKS=rodinia/backprop/backprop.fut rodinia/hotspot/hotspot.fut rodinia/cfd/cfd.fut rodinia/kmeans/kmeans.fut rodinia/lavaMD/lavaMD.fut rodinia/nn/nn.fut rodinia/pathfinder/pathfinder.fut rodinia/srad/srad.fut parboil/mri-q/mri-q.fut parboil/stencil/stencil.fut parboil/tpacf/tpacf.fut finpar/OptionPricing.fut
-
-results/bulk-moderate.json: futhark-benchmarks $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) --json $@ $(BULK_BENCHMARKS:%.fut=futhark-benchmarks/%.fut)
-
-results/bulk-incremental.json: futhark-benchmarks $(FUTHARK_OPENCL_DEPS)
-	mkdir -p results
-	FUTHARK_INCREMENTAL_FLATTENING=1 futhark-bench $(FUTHARK_BENCH_OPENCL_OPTIONS) --json $@ $(BULK_BENCHMARKS:%.fut=futhark-benchmarks/%.fut)
-
-bulk-speedup.pdf: results/bulk-reference.json results/bulk-moderate.json results/bulk-incremental.json tools/bulk-plot.py
-	tools/bulk-plot.py $@
-
 ## Bulk (impact) benchmarking
 
 results/%-moderate.json: benchmarks/%-data futhark-benchmarks $(FUTHARK_OPENCL_DEPS)
