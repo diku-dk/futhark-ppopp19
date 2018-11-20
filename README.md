@@ -2,9 +2,36 @@
 
 # Experimental infrastructure for PPOPP'19 paper
 
-Due to issues with making OpenCL/CUDA available in a VM image, this
-infrastructure depends on some fairly common tools and libraries being
-installed on the local system.  Specifically, we require:
+## Docker image
+
+We provide a Docker image with the necessary programs and libraries for
+Futhark to build and run.  This currently only works on machines with
+Nvidia GPUs.  Install:
+
+  * [Docker](https://docs.docker.com/install/)
+  * [Nvidia's Docker runtime](https://github.com/NVIDIA/nvidia-docker#quickstart)
+
+Run:
+
+```
+docker run -it --runtime=nvidia futhark/ppopp19
+```
+
+(You may need to use `sudo` or similar for this.)
+
+You should now have a shell open inside a directory with the contents of
+this repository.  Next step: [Usage](#usage).
+
+(Alternatively you can build the Docker image yourself by using the
+Dockerfile included in this repository.)
+
+
+## Manual installation of dependencies
+
+*In case you don't use the Docker image:*
+
+This infrastructure depends on some fairly common tools and libraries
+being installed on the local system.  Specifically, we require:
 
   * [The Haskell Tool Stack](https://docs.haskellstack.org) for
     building the Futhark compiler itself.  The [installation
