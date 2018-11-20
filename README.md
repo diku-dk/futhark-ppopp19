@@ -80,7 +80,7 @@ A quick way to determine whether the system is sound is to run
 
     make bin/gpuid
 
-One some systems, depending on the OpenCL vendor, it may be necessary
+On some systems, depending on the OpenCL vendor, it may be necessary
 to set some combination of the environment variables `LIBRARY_PATH`,
 `CPATH`, and `LD_LIBRARY_PATH` for this to work.
 
