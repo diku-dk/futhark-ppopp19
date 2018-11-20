@@ -49,6 +49,10 @@ being installed on the local system.  Specifically, we require:
     [Matplotlib](https://matplotlib.org/) for Python, as well as a
     working LaTeX setup.
 
+  * [bc](https://www.gnu.org/software/bc/) is needed for some of the
+    data generation scripts.  This should be preinstalled (or easily
+    installable) on just about any Unix system.
+
 ## Usage
 
 Ideally, run `make` and everything will happen.  All external
