@@ -2,10 +2,11 @@
 -- https://github.com/kkushagra/rodinia/blob/master/openmp/nw
 --
 -- ==
+-- compiled input @ nw-data/train-D.in.gz
 --
--- compiled input @ nw-data/D1.in.gz
+-- notune compiled input @ nw-data/D1.in.gz
 -- output @ nw-data/D1.out.gz
--- compiled input @ nw-data/D2.in.gz
+-- notune compiled input @ nw-data/D2.in.gz
 -- output @ nw-data/D2.out.gz
 
 type int = i32
