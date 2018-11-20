@@ -1,8 +1,8 @@
 -- | Pricing of [European
 -- call-options](https://en.wikipedia.org/wiki/Option_style#American_and_European_options)
 -- in the [Heston model](https://en.wikipedia.org/wiki/Heston_model).
-import "/futlib/complex"
-import "/futlib/date"
+import "../lib/github.com/diku-dk/complex/complex"
+import "../lib/github.com/diku-dk/date/date"
 
 -- | Parameters for the Heston model.
 type heston_parameters 'real = { initial_variance: real
@@ -42,7 +42,7 @@ let twenty: num_points = false
 
 open R
 
-module c64 = complex(R)
+module c64 = mk_complex R
 type c64 = c64.complex
 
 let (x: c64) +! (y: c64) = x c64.+ y
@@ -298,9 +298,10 @@ let price_european_calls [num_points] [num_maturities] [num_quotes]
                    in w * c64.re (coeff_k *! c64.exp (x *! minus_ikk)))
                   minus_ik maturity_for_quote)
 
-       -- write reduction as loop to avoid pointless segmented
+       -- Write reduction as foldl to avoid pointless segmented
        -- reduction (the inner parallelism is not needed).
-       let res = map (R.sum) (transpose (map2 iter x w))
+       let res = map (foldl (+) (int 0))
+                     (transpose (map2 iter x w))
        in map3 (\moneyness resk m ->
                let day_count_fraction = unsafe day_count_fractions[m]
                let sigma_sqrtt = R.sqrt (sigma2 day_count_fraction * day_count_fraction)

@@ -25,7 +25,7 @@
 -- module dist = uniform_real_distribution f32 minstd_rand
 --
 -- let rng = minstd_rand.rng_from_seed [123]
--- let (rng, x) = dist.rand (1,6)
+-- let (rng, x) = dist.rand (1,6) rng
 -- ```
 --
 -- The `rand` function of `uniform_real_distribution`@term simply
@@ -36,7 +36,7 @@
 -- ```
 -- module norm_dist = normal_distribution f32 minstd_rand
 --
--- let (rng, y) = norm_dist.rand {mean=50, stddev=25}
+-- let (rng, y) = norm_dist.rand {mean=50, stddev=25} rng
 -- ```
 --
 -- Since both `dist` and `norm_dist` have been initialised with the
@@ -81,10 +81,11 @@
 -- From http://stackoverflow.com/a/12996028
 local
 let hash(x: i32): i32 =
-  let x = ((x >>> 16) ^ x) * 0x45d9f3b
-  let x = ((x >>> 16) ^ x) * 0x45d9f3b
-  let x = ((x >>> 16) ^ x)
-  in x
+  let x = u32.i32 x
+  let x = ((x >> 16) ^ x) * 0x45d9f3b
+  let x = ((x >> 16) ^ x) * 0x45d9f3b
+  let x = ((x >> 16) ^ x)
+  in i32.u32 x
 
 -- | Low-level modules that act as sources of random numbers in some
 -- uniform distribution.
@@ -163,10 +164,10 @@ module linear_congruential_engine (T: integral) (P: {
 
   let rng_from_seed [n] (seed: [n]i32) =
     let seed' =
-      loop seed' = T.i32 1 for i < n do
-        ((seed' T.>>> T.i32 16) T.^ seed') T.^
-        T.i32 (seed[i] ^ 0b1010101010101)
-    in (rand seed').1
+      loop seed' = 1 for i < n do
+        u32.(((seed' >> 16) ^ seed') ^
+             (i32 seed[i] ^ 0b1010101010101))
+    in (rand (T.u32 seed')).1
 
   let split_rng (n: i32) (x: rng): [n]rng =
     map (\i -> x T.^ T.i32 (hash i)) (iota n)
@@ -221,7 +222,7 @@ module subtract_with_carry_engine (T: integral) (P: {
             false)
       else (T.(modulus - x[k] - bool carry + x[short_index]),
             true)
-    let x = (copy x) with [k] <- xi
+    let x = (copy x) with [k] = xi
     let k = (k + 1) % long_lag
     in ({x, carry, k}, xi)
 
@@ -229,7 +230,7 @@ module subtract_with_carry_engine (T: integral) (P: {
     let rng = e.rng_from_seed seed
     let (x, _) = loop (x, rng) = (replicate P.r (T.i32 0), rng)
                    for i < P.r do let (v, rng) = e.rand rng
-                                  in (x with [i] <- T.(v % modulus),
+                                  in (x with [i] = T.(v % modulus),
                                       rng)
     let carry = T.(last x == i32 0)
     let k = 0
@@ -267,7 +268,7 @@ module discard_block_engine (K: {
   let min = E.min
   let max = E.max
 
-  let rng_from_seed (xs: []i32) =
+  let rng_from_seed (xs: []i32): rng =
     (E.rng_from_seed xs, 0)
 
   let split_rng (n: i32) ((rng, i): rng): [n]rng =
@@ -301,7 +302,7 @@ module shuffle_order_engine (K: {val k: i32}) (E: rng_engine)
     let xs = replicate K.k (int.i32 0)
     in loop (rng,xs) for i < K.k do
          let (rng,x) = E.rand rng
-         in (rng, xs with [i] <- x)
+         in (rng, xs with [i] = x)
 
   let rng_from_seed (xs: []i32) =
     build_table (E.rng_from_seed xs)
@@ -317,7 +318,7 @@ module shuffle_order_engine (K: {val k: i32}) (E: rng_engine)
     let (rng,x) = E.rand rng
     let i = i32.i64 (int.to_i64 x) % K.k
     let (rng,y) = E.rand rng
-    in unsafe ((rng, (copy table) with [i] <- y), table[i])
+    in unsafe ((rng, (copy table) with [i] = y), table[i])
 
   let min = E.min
   let max = E.max
@@ -349,9 +350,9 @@ module minstd_rand0: rng_engine with int.t = u32 =
 -- `w=24`, `s=10`, `r=24`.
 module ranlux24_base: rng_engine with int.t = u32 =
   subtract_with_carry_engine u32 {
-    let w = 24
-    let s = 10
-    let r = 24
+    let w:i32 = 24
+    let s:i32 = 10
+    let r:i32 = 24
   }
 
 -- | A subtract-with-carry pseudo-random generator of 48-bit numbers,
@@ -360,9 +361,9 @@ module ranlux24_base: rng_engine with int.t = u32 =
 -- `w=48`, `s=5`, `r=12`.
 module ranlux48_base: rng_engine with int.t = u64 =
   subtract_with_carry_engine u64 {
-    let w = 48
-    let s = 5
-    let r = 12
+    let w:i32 = 48
+    let s:i32 = 5
+    let r:i32 = 12
   }
 
 -- | A subtract-with-carry pseudo-random generator of 24-bit numbers
@@ -371,7 +372,7 @@ module ranlux48_base: rng_engine with int.t = u64 =
 -- It is an instantiation of a `discard_block_engine`@term with
 -- `ranlux24_base`@term, with parameters `p=223` and `r=23`.
 module ranlux24: rng_engine with int.t = u32 =
-  discard_block_engine {let p = 223 let r = 23} ranlux24_base
+  discard_block_engine {let p:i32 = 223 let r:i32 = 23} ranlux24_base
 
 -- | A subtract-with-carry pseudo-random generator of 48-bit numbers
 -- with accelerated advancement.
@@ -379,13 +380,13 @@ module ranlux24: rng_engine with int.t = u32 =
 -- It is an instantiation of a `discard_block_engine`@term with
 -- `ranlux48_base`@term, with parameters `p=223` and `r=23`.
 module ranlux48: rng_engine with int.t = u64 =
-  discard_block_engine {let p = 389 let r = 11} ranlux48_base
+  discard_block_engine {let p:i32 = 389 let r:i32 = 11} ranlux48_base
 
 -- | An engine adaptor that returns shuffled sequences generated with
 -- `minstd_rand0`@term.  It is not a good idea to use this RNG in a
 -- parallel setting, as the state size is fairly large.
 module knuth_b: rng_engine with int.t = u32 =
-  shuffle_order_engine {let k = 256} minstd_rand0
+  shuffle_order_engine {let k:i32 = 256} minstd_rand0
 
 -- | The [xorshift128+](https://en.wikipedia.org/wiki/Xorshift#xorshift+) engine.  Uses
 -- two 64-bit words as state.
@@ -399,11 +400,15 @@ module xorshift128plus: rng_engine with int.t = u64 = {
     let new_y = x ^ y ^ (x >> 17u64) ^ (y >> 26u64)
     in ((new_x,new_y), (new_y + y))
 
+  -- This seeding is quite a hack to ensure that we get good results
+  -- even for poor seeds.  The main trick is to run a couple of rounds
+  -- of the RNG after we're done.
   let rng_from_seed [n] (seed: [n]i32) =
-    loop (a,b) = (1u64,u64.i32 n) for i < n do
-      if n % 2 == 0
-      then (rand (a^u64.i32 (hash seed[i]),b)).1
-      else (rand (a, b^u64.i32 (hash seed[i]))).1
+    (loop (a,b) = (u64.i32 (hash (-n)), u64.i32 (hash n)) for i < n do
+       if i % 2 == 0
+       then (rand (a^u64.i32 (hash seed[i]),b)).1
+       else (rand (a, b^u64.i32 (hash seed[i]))).1)
+    |> rand |> (.1) |> rand |> (.1)
 
   let split_rng (n: i32) ((x,y): rng): [n]rng =
     map (\i -> let (a,b) = (rand (rng_from_seed [hash (i^n)])).1
@@ -412,8 +417,8 @@ module xorshift128plus: rng_engine with int.t = u64 = {
   let join_rng [n] (xs: [n]rng): rng =
     reduce (\(x1,y1) (x2,y2) -> (x1^x2,y1^y2)) (0u64,0u64) xs
 
-  let min = u64.smallest
-  let max = u64.largest
+  let min = u64.lowest
+  let max = u64.highest
 }
 
 
@@ -476,8 +481,11 @@ module uniform_int_distribution (D: integral) (E: rng_engine):
     let max = to_E max
     let range = max - min + i32 1
     in if range <= i32 0
-       then (rng, to_D E.min) -- Avoid infinite loop below.
-       else let secure_max = E.max - E.max %% range
+       then (rng, to_D E.min)
+       else -- Avoid infinite loop if range exceeds what the RNG
+            -- engine can supply.  This does not mean that we actually
+            -- deliver sensible values, though.
+            let secure_max = E.max - E.max %% range
             let (rng,x) = loop (rng, x) = E.rand rng
                           while x >= secure_max do E.rand rng
             in (rng, to_D (min + x / (secure_max / range)))
@@ -489,7 +497,8 @@ module uniform_real_distribution (R: real) (E: rng_engine):
   rng_distribution with num.t = R.t
                    with engine.rng = E.rng
                    with distribution = (R.t,R.t) = {
-  let to_D (x: E.int.t) = R.i64 (E.int.to_i64 x)
+  let to_R (x: E.int.t) =
+    R.u64 (u64.i64 (E.int.to_i64 x))
 
   module engine = E
   module num = R
@@ -499,7 +508,7 @@ module uniform_real_distribution (R: real) (E: rng_engine):
 
   let rand ((min_r,max_r): distribution) (rng: E.rng) =
     let (rng', x) = E.rand rng
-    let x' = to_D x R./ to_D E.max
+    let x' = R.((to_R x - to_R E.min) / (to_R E.max - to_R E.min))
     in (rng', R.(min_r + x' * (max_r - min_r)))
 }
 
