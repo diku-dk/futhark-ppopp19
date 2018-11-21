@@ -5,8 +5,9 @@ FROM nvidia/opencl:devel-ubuntu18.04
 WORKDIR /root
 
 # Then install the necessary dependencies.
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update \
-    && apt -y install locales binutils build-essential nvidia-cuda-toolkit sqlite3 libsqlite3-dev libtinfo-dev python-pip git curl wget bc libffi-dev libgmp-dev zlib1g-dev locales \
+    && apt -y install binutils build-essential nvidia-cuda-toolkit sqlite3 libsqlite3-dev libtinfo-dev python-pip git curl wget bc libffi-dev libgmp-dev zlib1g-dev texlive texlive-latex-extra texlive-fonts-recommended dvipng locales \
     && rm -rf /var/lib/apt/lists/*
 RUN locale-gen en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
