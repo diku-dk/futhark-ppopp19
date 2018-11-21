@@ -85,6 +85,8 @@ results/matmul-reference.json: reference/matmul/matmul
 
 benchmarks/pathfinder-data: $(FUTHARK_DEPS)
 	mkdir -p $@
+	$(FUTHARK_DATASET) -b -g [1][50][50000]i32 > $@/train-D1.in
+	$(FUTHARK_DATASET) -b -g [300][100][192]i32 > $@/train-D2.in
 	$(FUTHARK_DATASET) -b -g [1][100][100096]i32 > $@/D1.in
 	$(FUTHARK_C) benchmarks/pathfinder.fut
 	benchmarks/pathfinder -b < $@/D1.in > $@/D1.out
