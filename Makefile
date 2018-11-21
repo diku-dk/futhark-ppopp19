@@ -202,6 +202,8 @@ results/%-incremental-tuned.json: tunings/%.json $(FUTHARK_DEPS)
 
 benchmarks/nn-data: $(FUTHARK_DEPS)
 	mkdir -p $@
+	N=1 M=700000 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/train-D1.in'
+	N=2048 M=256 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/train-D2.in'
 	N=1 M=855280 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/D1.in'
 	N=4096 M=128 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/D2.in'
 

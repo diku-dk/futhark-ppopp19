@@ -2,9 +2,11 @@
 -- https://github.com/kkushagra/rodinia/blob/master/openmp/nn
 --
 -- ==
+-- compiled input @ nn-data/train-D1.in
+-- compiled input @ nn-data/train-D2.in
 --
--- compiled input @ nn-data/D1.in
--- compiled input @ nn-data/D2.in
+-- notune compiled input @ nn-data/D1.in
+-- notune compiled input @ nn-data/D2.in
 
 let emptyRecord: (i32, f32) = (0, 0.0f32)
 
