@@ -28,7 +28,7 @@ endif
 
 FUTHARK_DEPS=$(FUTHARK_OPENCL_DEPS) $(FUTHARK_C_DEPS) $(FUTHARK_DATASET_DEPS) $(FUTHARK_BENCH_DEPS)
 
-FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune --futhark-bench=$(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --test-limit 500000
+FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune --futhark-bench=$(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) --stop-after $(AUTOTUNE_SECONDS) --test-limit 5000000
 
 .PHONY: all benchmark clean veryclean
 .SUFFIXES:
