@@ -4,9 +4,9 @@
 
 ## Docker image
 
-We provide a Docker image with the necessary programs and libraries for
-Futhark to build and run.  This currently only works on machines with
-Nvidia GPUs.  Install:
+We provide a Docker image with the necessary programs and libraries
+for Futhark to build and run.  This currently only works on Linux
+machines with Nvidia GPUs.  Install:
 
   * [Docker](https://docs.docker.com/install/)
   * [Nvidia's Docker runtime](https://github.com/NVIDIA/nvidia-docker#quickstart)
@@ -104,6 +104,11 @@ in many package systems.
 
 [clinfo]: https://github.com/Oblomov/clinfo
 
+While Futhark code can compile and run correctly on macOS, it is our
+experience that many Rodinia benchmarks cannot.  Furthermore, most
+macOS systems do not have GPUs with enough memory available to run the
+larger benchmarks.
+
 The `python` executable on the default PATH must be Python 2, because
 OpenTuner does not support Python 3.  For generating the graphs, you
 will need Python with Matplotlib 2, Numpy, as well as a standard
@@ -138,6 +143,8 @@ reason not available, you can modify `config.mk` to set
 
 In case not the entire suite is able to execute on a given system,
 there are some useful sub-targets that can be used to run just parts.
+In particular, this can be used to obtain results on GPUs that do not
+have enough memory to run the larger benchmarks.
 
 ### Plotting targets
 
@@ -169,6 +176,28 @@ execution time.
 
   * `make bulk-impact-speedup`: run both Futhark and reference
     versions of the various Rodinia and Parboil benchmarks.
+
+### Very fine-grained targets
+
+  * `make results/*benchmark*-moderate.json`: produce a JSON file with
+    runtime results for *benchmark* compiled with moderate flattening,
+    where *benchmark* must be one of `matmul`, `nn`, `pathfinder`,
+    `nw`, `backprop`, `srad`, `lavaMD`, `OptionPricing`, `LocVolCalib`,
+    or `heston32`.
+
+ * `make results/*benchmark*-incremental.json`: as above, but with
+   incremental flattening.
+
+ * `make results/*benchmark*-incremental-tuned.json`: as above, but
+   with incremental flattening and with auto-tuning.
+
+ * `make results/*benchmark*-rodinia.json`: as above, but use the
+   Rodinia implementation (*benchmark* may not be `matmul`,
+   `heston32`, `OptionPricing` or `LocVolCalib`).
+
+ * `make results/*benchmark*-finpar.json`: as above, but use the
+   FinPar implementation (*benchmark* must be `OptionPricing` or
+   `LocVolCalib`).
 
 ### Utility targets
 
