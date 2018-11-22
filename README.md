@@ -179,23 +179,23 @@ execution time.
 
 ### Very fine-grained targets
 
-  * `make results/*benchmark*-moderate.json`: produce a JSON file with
+  * `make results/benchmark-moderate.json`: produce a JSON file with
     runtime results for *benchmark* compiled with moderate flattening,
     where *benchmark* must be one of `matmul`, `nn`, `pathfinder`,
     `nw`, `backprop`, `srad`, `lavaMD`, `OptionPricing`, `LocVolCalib`,
     or `heston32`.
 
- * `make results/*benchmark*-incremental.json`: as above, but with
+ * `make results/benchmark-incremental.json`: as above, but with
    incremental flattening.
 
- * `make results/*benchmark*-incremental-tuned.json`: as above, but
+ * `make results/benchmark-incremental-tuned.json`: as above, but
    with incremental flattening and with auto-tuning.
 
- * `make results/*benchmark*-rodinia.json`: as above, but use the
+ * `make results/benchmark-rodinia.json`: as above, but use the
    Rodinia implementation (*benchmark* may not be `matmul`,
    `heston32`, `OptionPricing` or `LocVolCalib`).
 
- * `make results/*benchmark*-finpar.json`: as above, but use the
+ * `make results/benchmark-finpar.json`: as above, but use the
    FinPar implementation (*benchmark* must be `OptionPricing` or
    `LocVolCalib`).
 
