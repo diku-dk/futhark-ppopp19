@@ -46,8 +46,9 @@ being installed on the local system.  Specifically, we require:
     system of virtually any Linux distribution.
 
   * Generating the graphs requires
-    [Matplotlib](https://matplotlib.org/) for Python, as well as a
-    working LaTeX setup.
+    [Matplotlib](https://matplotlib.org/) version 3 for Python, as
+    well as a working LaTeX setup.  Note that as of this writing, many
+    systems only have Matplotlib 2 preinstalled.
 
   * [bc](https://www.gnu.org/software/bc/) is needed for some of the
     data generation scripts.  This should be preinstalled (or easily

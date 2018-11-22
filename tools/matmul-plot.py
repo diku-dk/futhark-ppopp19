@@ -10,6 +10,10 @@ import numpy as np
 import sys
 import json
 
+if int(matplotlib.__version__.split('.')[0]) < 3:
+    raise Exception('Plotting requires Matplotlib version 3.  Installed version is %s.' %
+                    matplotlib.__version__)
+
 rc('text', usetex=True)
 
 def dataset_filename(x, k):
