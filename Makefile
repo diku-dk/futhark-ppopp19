@@ -38,7 +38,7 @@ all: $(FUTHARK_DEPS) rodinia_3.1-patched plots
 
 plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-impact-speedup.pdf
 
-.PHONY: matmul-runtimes-large matmul-runtimes-large-small
+.PHONY: matmul-runtimes-large matmul-runtimes-small
 matmul-runtimes-large: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
 matmul-runtimes-small: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
 
