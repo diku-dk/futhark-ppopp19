@@ -10,8 +10,8 @@ import numpy as np
 import sys
 import json
 
-if int(matplotlib.__version__.split('.')[0]) < 3:
-    raise Exception('Plotting requires Matplotlib version 3.  Installed version is %s.' %
+if int(matplotlib.__version__.split('.')[0]) != 2:
+    raise Exception('Plotting requires Matplotlib version 2.  Installed version is %s.' %
                     matplotlib.__version__)
 
 rc('text', usetex=True)

@@ -38,10 +38,15 @@ all: $(FUTHARK_DEPS) rodinia_3.1-patched parboil-patched plots
 
 plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-impact-speedup.pdf
 
-matmul-runtimes-large.pdf matmul-runtimes-large.tex: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
+.PHONY: matmul-runtimes-large matmul-runtimes-large-small
+matmul-runtimes-large: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
+matmul-runtimes-small: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
+
+matmul-runtimes-large.pdf matmul-runtimes-large.tex: matmul-runtimes-large tools/matmul-plot.py
 	python tools/matmul-plot.py $(MATMUL_REFERENCE) matmul-runtimes-large.pdf matmul-runtimes-large.tex $(MATMUL_SIZES_LARGE)
 
-matmul-runtimes-small.pdf matmul-runtimes-small.tex: results/matmul-moderate.json results/matmul-incremental.json results/matmul-incremental-tuned.json results/matmul-reference.json tools/matmul-plot.py
+
+matmul-runtimes-small.pdf matmul-runtimes-small.tex: matmul-runtimes-small tools/matmul-plot.py
 	python tools/matmul-plot.py $(MATMUL_REFERENCE) matmul-runtimes-small.pdf matmul-runtimes-small.tex $(MATMUL_SIZES_SMALL)
 
 # General rules for running the simple cases of benchmarks.
@@ -66,6 +71,7 @@ MATMUL_SIZES_SMALL=0 10 20
 
 benchmarks/matmul-data: $(FUTHARK_DEPS)
 	mkdir -p $@
+	touch $@
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_LARGE)
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_SMALL)
 
@@ -85,6 +91,7 @@ results/matmul-reference.json: reference/matmul/matmul
 
 benchmarks/pathfinder-data: $(FUTHARK_DEPS)
 	mkdir -p $@
+	touch $@
 	$(FUTHARK_DATASET) -b -g [1][50][50000]i32 > $@/train-D1.in
 	$(FUTHARK_DATASET) -b -g [300][100][192]i32 > $@/train-D2.in
 	$(FUTHARK_DATASET) -b -g [1][100][100096]i32 > $@/D1.in
@@ -94,7 +101,10 @@ benchmarks/pathfinder-data: $(FUTHARK_DEPS)
 	$(FUTHARK_C) benchmarks/pathfinder.fut
 	benchmarks/pathfinder -b < $@/D2.in > $@/D2.out
 
-LocVolCalib-runtimes.pdf: results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-incremental-tuned.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json tools/LocVolCalib-plot.py
+.PHONY: LocVolCalib-runtimes
+LocVolCalib-runtimes: results/LocVolCalib-moderate.json results/LocVolCalib-incremental.json results/LocVolCalib-incremental-tuned.json results/LocVolCalib-finpar-AllParOpenCLMP.json results/LocVolCalib-finpar-OutParOpenCLMP.json
+
+LocVolCalib-runtimes.pdf: LocVolCalib-runtimes tools/LocVolCalib-plot.py
 	python tools/LocVolCalib-plot.py
 
 results/LocVolCalib-finpar-%.json: results/LocVolCalib-%-small.raw results/LocVolCalib-%-medium.raw results/LocVolCalib-%-large.raw tools/LocVolCalib-json.py
@@ -125,10 +135,6 @@ bin/gpuid: tools/gpuid.c
 	$(CC) -o $@ $< $(CFLAGS)
 
 ## Now for Rodinia scaffolding.  Crufty and hacky.
-
-RODINIA_BENCHMARKS=backprop
-
-RODINIA_URL=http://www.cs.virginia.edu/~kw5na/lava/Rodinia/Packages/Current/rodinia_3.1.tar.bz2
 
 rodinia_3.1-patched: rodinia_3.1.tar.bz2
 	@if ! md5sum --quiet -c rodinia_3.1.tar.bz2.md5; then \
@@ -202,6 +208,7 @@ results/%-incremental-tuned.json: tunings/%.json $(FUTHARK_DEPS)
 
 benchmarks/nn-data: $(FUTHARK_DEPS)
 	mkdir -p $@
+	touch $@
 	N=1 M=700000 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/train-D1.in'
 	N=2048 M=256 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/train-D2.in'
 	N=1 M=855280 sh -c 'tools/nn-data.sh $(FUTHARK_DATASET) $$N $$M > $@/D1.in'
@@ -247,7 +254,10 @@ results/pathfinder-rodinia.json: rodinia_3.1-patched tools/rodinia_run.sh
 	tools/rodinia_run.sh pathfinder D1 $(RODINIA_RUNS) > results/pathfinder-rodinia-D1.runtimes
 	tools/raw_rodinia_to_json.py pathfinder D1 > $@ || rm -f $@
 
-bulk-impact-speedup.pdf: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_ONE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_FULL_RESULTS) tools/bulk-impact-plot.py results/OptionPricing-finpar.json
+.PHONY: bulk-impact-speedup
+bulk-impact-speedup: $(MODERATE_RESULTS) $(INCREMENTAL_RESULTS) $(AUTOTUNED_RESULTS) $(BASELINE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_ONE_RESULTS) $(IMPACT_RODINIA_BENCHMARKS_FULL_RESULTS) results/OptionPricing-finpar.json
+
+bulk-impact-speedup.pdf: bulk-impact-speedup tools/bulk-impact-plot.py
 	tools/bulk-impact-plot.py $@
 
 ## Building Futhark

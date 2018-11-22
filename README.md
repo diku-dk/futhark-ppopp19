@@ -45,10 +45,9 @@ being installed on the local system.  Specifically, we require:
     which must also be installed.  SQLite can be found in the package
     system of virtually any Linux distribution.
 
-  * Generating the graphs requires
-    [Matplotlib](https://matplotlib.org/) version 3 for Python, as
-    well as a working LaTeX setup.  Note that as of this writing, many
-    systems only have Matplotlib 2 preinstalled.
+  * Generating the graphs requires Numpy and
+    [Matplotlib](https://matplotlib.org/) version 2 for Python, as
+    well as a working LaTeX setup.
 
   * [bc](https://www.gnu.org/software/bc/) is needed for some of the
     data generation scripts.  This should be preinstalled (or easily
@@ -105,8 +104,10 @@ in many package systems.
 
 [clinfo]: https://github.com/Oblomov/clinfo
 
-For generating the graphs, you will also need Python with Matplotlib,
-Numpy, as well as a standard working LaTeX setup.
+The `python` executable on the default PATH must be Python 2, because
+OpenTuner does not support Python 3.  For generating the graphs, you
+will need Python with Matplotlib 2, Numpy, as well as a standard
+working LaTeX setup.
 
 For building the Futhark compiler you will need [stack], a build
 tool for Haskell.  You can possibly also install a binary release of
@@ -123,21 +124,53 @@ accomplished simply by running
 
 [OpenTuner]: http://opentuner.org/
 
+## Technical details
+
+The Makefile will automatically detect whether the matrix
+multiplication experiment should use cuBLAS as the reference, or a
+portable OpenCL implementation.  This is done by checking whether
+`nvcc` in scope.  If this heuristic goes wrong, or cuBLAS is for some
+reason not available, you can modify `config.mk` to set
+`USE_CUBLAS=0`.  On machines without an NVIDIA GPU, the absence of
+`nvcc` means that the OpenCL implementation gets picked.
+
 ## Other `make` targets
 
-In case not the entire suite able to execute on a given system, there
-are some useful sub-targets that can be used to run just parts:
+In case not the entire suite is able to execute on a given system,
+there are some useful sub-targets that can be used to run just parts.
 
-  `make matmul-runtimes-large.pdf` and `make
-  matmul-runtimes-small.pdf`: run the matrix multiplication benchmark.
+### Plotting targets
 
-  `LocVolCalib-runtimes.pdf`: run the LocVolCalib benchmark.
+  * `make matmul-runtimes-large.pdf` and `make
+    matmul-runtimes-small.pdf`: run the matrix multiplication
+    benchmark and plot the results.
 
-  `bulk-impact-speedup.pdf`: run both Futhark and reference versions
-  of the various Rodinia and Parboil benchmarks.  This is perhaps the
-  one most likely to fail, as it involves a significant amount of
-  third party code, not all of which was designed with benchmarking
-  and portability in mind.
+  * `make LocVolCalib-runtimes.pdf`: run the LocVolCalib benchmark and
+    plot the results.
 
-  `veryclean`: like `clean`, but removes even the parts that have been
+  * `make bulk-impact-speedup.pdf`: run both Futhark and reference
+    versions of the various Rodinia and Parboil benchmarks and plot
+    the results.  This is perhaps the one most likely to fail, as it
+    involves a significant amount of third party code, not all of
+    which was designed with benchmarking and portability in mind.
+
+### Results without plots
+
+This can be useful if you are on a system that does not have an
+appropriate version of Matplotlib installed.  The runtimes will be
+printed on the screen, and the raw data also available in JSON format
+in the `results` directory.  Runtimes are not computed; only the raw
+execution time.
+
+  * `make matmul-runtimes-large` and `make matmul-runtimes-small`: run
+    the matrix multiplication benchmark.
+
+  * `make LocVolCalib-runtimes`: run the LocVolCalib benchmark.
+
+  * `make bulk-impact-speedup`: run both Futhark and reference
+    versions of the various Rodinia and Parboil benchmarks.
+
+### Utility targets
+
+  `make veryclean`: like `make clean`, but removes even the parts that have been
   downloaded externally.
