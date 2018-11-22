@@ -1,6 +1,6 @@
 **IMPORTANT: IF YOU CLONE THIS REPOSITORY, USE `--recursive`, OR INITIALISE GIT SUBMODULES MANUALLY AFTERWARDS.**
 
-# Experimental infrastructure for PPOPP'19 paper
+# Experimental infrastructure for the PPOPP'19 paper *Incremental Flattening for Nested Data Parallelism*
 
 ## Docker image
 
@@ -14,10 +14,12 @@ machines with Nvidia GPUs.  Install:
 Run:
 
 ```
-docker run -it --runtime=nvidia futhark/ppopp19
+docker run -it --runtime=nvidia --storage-opt size=20G futhark/ppopp19
 ```
 
-(You may need to use `sudo` or similar for this.)
+You may need to use `sudo` or similar for this.  The ``--storage-opt
+size=20G`` part is needed because the default Docker disk quota of
+10GiB tends to be too small.
 
 You should now have a shell open inside a directory with the contents of
 this repository.  Next step: [Usage](#usage).
