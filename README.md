@@ -142,6 +142,13 @@ reason not available, you can modify `config.mk` to set
 `USE_CUBLAS=0`.  On machines without an NVIDIA GPU, the absence of
 `nvcc` means that the OpenCL implementation gets picked.
 
+This repository does not contain the Futhark compiler source code.
+Rather, it uses a Git submodule that pins a specific commit of the
+Futhark compiler.  A similar submodule is used for the FinPar
+benchmark suite.  Rodinia does not have public source control, and
+therefore the Makefile simply downloads a tarball from a known
+location.
+
 ## Other `make` targets
 
 In case not the entire suite is able to execute on a given system,
