@@ -64,7 +64,7 @@ results/%-incremental-tuned.json: benchmarks/%.fut benchmarks/%-data futhark $(F
 MATMUL_SIZES_LARGE=0 10 25
 MATMUL_SIZES_SMALL=0 10 20
 
-benchmarks/matmul-data:
+benchmarks/matmul-data: $(FUTHARK_DEPS)
 	mkdir -p $@
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_LARGE)
 	tools/make_matmul_matrices.sh $(MATMUL_SIZES_SMALL)
