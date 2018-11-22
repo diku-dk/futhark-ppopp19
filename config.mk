@@ -22,7 +22,7 @@ else
   FUTHARK_OPENCL_DEVICE?=
 endif
 
-AUTOTUNE_SECONDS=1200 # 20 minutes at most.
+AUTOTUNE_SECONDS=1800 # 30 minutes at most.
 
 include binaries.mk
 
