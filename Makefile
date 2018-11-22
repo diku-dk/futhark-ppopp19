@@ -34,7 +34,7 @@ FUTHARK_AUTOTUNE=futhark/tools/futhark-autotune --futhark-bench=$(FUTHARK_BENCH)
 .SUFFIXES:
 .SECONDARY:
 
-all: $(FUTHARK_DEPS) rodinia_3.1-patched parboil-patched plots
+all: $(FUTHARK_DEPS) rodinia_3.1-patched plots
 
 plots: matmul-runtimes-large.pdf matmul-runtimes-small.pdf LocVolCalib-runtimes.pdf bulk-impact-speedup.pdf
 
@@ -155,38 +155,6 @@ results/%-rodinia.runtimes: bin/gpuid rodinia_3.1-patched
 	mkdir -p results
 	tools/rodinia_run.sh opencl/$* $(RODINIA_RUNS)
 	tail -n +2 rodinia_3.1-patched/opencl/$*/runtimes > $@
-
-## Parboil stuff
-
-pb2.5driver.tgz:
-	wget http://www.phoronix-test-suite.com/benchmark-files/pb2.5driver.tgz
-
-pb2.5benchmarks.tgz:
-	wget http://www.phoronix-test-suite.com/benchmark-files/pb2.5benchmarks.tgz
-
-pb2.5datasets_standard.tgz:
-	wget http://www.phoronix-test-suite.com/benchmark-files/pb2.5datasets_standard.tgz
-
-parboil-patched: pb2.5driver.tgz pb2.5benchmarks.tgz pb2.5datasets_standard.tgz
-	tar -xf pb2.5driver.tgz
-	mv parboil parboil-patched
-	echo 'OPENCL_PATH=/' > parboil-patched/common/Makefile.conf
-	tar -C parboil-patched -xf pb2.5benchmarks.tgz
-	tar -C parboil-patched -xf pb2.5datasets_standard.tgz
-	patch -p0 < parboil-fixes.patch
-
-# This is a development rule that users should never use.
-parboil-fixes.patch:
-	diff -pur parboil parboil-patched > $@ || true
-
-results/mri-q-parboil.runtimes: bin/gpuid parboil-patched
-	tools/parboil_run.sh mri-q opencl large 10 > $@
-
-results/stencil-parboil.runtimes: bin/gpuid parboil-patched
-	tools/parboil_run.sh stencil opencl_nvidia default 10 > $@
-
-results/tpacf-parboil.runtimes: bin/gpuid parboil-patched
-	tools/parboil_run.sh tpacf opencl_nvidia large 10 > $@
 
 ## Bulk (impact) benchmarking
 

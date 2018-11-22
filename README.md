@@ -58,11 +58,12 @@ install the necessary components on a Debian/Ubuntu machine.
 
 ## Usage
 
-Ideally, run `make` and everything will happen.  All external
-resources are automatically be downloaded with `git` and `wget` if
-necessary.  Results will be located in machine-readable form in the
-`results/` directory, auto-tuned parameters in `tunings/`, and graphs
-will be produced in PDF format in the root directory.
+Ideally, run `make` and everything will happen.  Note that this may
+well take hours.  All external resources are automatically be
+downloaded with `git` and `wget` if necessary.  Results will be
+located in machine-readable form in the `results/` directory,
+auto-tuned parameters in `tunings/`, and graphs will be produced in
+PDF format in the root directory.
 
 The `config.mk` file contains commented configuration parameters that
 may need customisation based on the machine being used.  In
@@ -156,8 +157,8 @@ have enough memory to run the larger benchmarks.
     plot the results.
 
   * `make bulk-impact-speedup.pdf`: run both Futhark and reference
-    versions of the various Rodinia and Parboil benchmarks and plot
-    the results.  This is perhaps the one most likely to fail, as it
+    versions of the various Rodinia and FinPar benchmarks and plot the
+    results.  This is perhaps the one most likely to fail, as it
     involves a significant amount of third party code, not all of
     which was designed with benchmarking and portability in mind.
 
