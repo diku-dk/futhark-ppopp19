@@ -2,11 +2,11 @@
 -- https://github.com/kkushagra/rodinia/blob/master/openmp/lavaMD/main.c
 --
 -- ==
--- notune compiled input @ lavaMD-data/D1.in
--- notune compiled input @ lavaMD-data/D2.in
+-- compiled input @ lavaMD-data/D1.in
+-- compiled input @ lavaMD-data/D2.in
 --
--- compiled input @ lavaMD-data/train-D1.in
--- compiled input @ lavaMD-data/train-D2.in
+-- notune compiled input @ lavaMD-data/train-D1.in
+-- notune compiled input @ lavaMD-data/train-D2.in
 
 let dot ((ax,ay,az), (bx,by,bz)): f32 =
   ax*bx + ay*by + az*bz
