@@ -61,7 +61,7 @@ results/%-incremental.json: benchmarks/%.fut benchmarks/%-data $(FUTHARK_DEPS)
 	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@
 results/%-incremental-tuned.json: benchmarks/%.fut benchmarks/%-data futhark $(FUTHARK_DEPS)
 	mkdir -p results tunings
-	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/$*.fut $(FUTHARK_BENCH_OPENCL_OPTIONS) --save-json tunings/$*.json
+	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_AUTOTUNE) benchmarks/$*.fut --save-json tunings/$*.json
 	FUTHARK_INCREMENTAL_FLATTENING=1 $(FUTHARK_BENCH) $(FUTHARK_BENCH_OPENCL_OPTIONS) benchmarks/$*.fut --json $@ $$(python tools/tuning_json_to_options.py < tunings/$*.json)
 
 # You will also have to modify the data set stanzas in
