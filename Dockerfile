@@ -17,6 +17,11 @@ RUN curl -sSL https://get.haskellstack.org/ | sh
 # Finally, fetch the repository.
 RUN git clone --recursive https://github.com/diku-dk/futhark-ppopp19.git
 
+# Initialize the repository by predownloading and prebuilding
+# necessary components.
+WORKDIR /root/futhark-ppopp19
+RUN make artifact
+
 # Run bash inside the fetched repository when the container is opened.  At this
 # point the user just needs to type 'make'.
 WORKDIR /root/futhark-ppopp19
