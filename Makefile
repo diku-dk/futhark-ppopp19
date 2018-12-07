@@ -242,6 +242,17 @@ bin/futhark:
 	cd futhark && stack build
 	cp `cd futhark && stack exec which futhark` $@
 
+## Artifact preparation
+#
+# The 'artifact' target predownloads everything such that the
+# resulting artifact/image can be used without any Internet connection
+# (and is thus fully reproducible).  This also builds the Futhark
+# compiler, because the Haskell build tool ('stack') goes online to
+# look for the library dependencies.
+
+.PHONY: artifact
+artifact: $(FUTHARK_DEPS) rodinia_3.1.tar.bz2
+
 clean:
 	rm -rf bin benchmarks/*.expected benchmarks/*.actual benchmarks/*-c benchmarks/matmul-data benchmarks/pathfinder-data benchmarks/nn-data tunings results *.pdf finpar.log
 
