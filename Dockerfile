@@ -24,5 +24,4 @@ RUN make artifact
 
 # Run bash inside the fetched repository when the container is opened.  At this
 # point the user just needs to type 'make'.
-WORKDIR /root/futhark-ppopp19
 CMD ["bash"]
