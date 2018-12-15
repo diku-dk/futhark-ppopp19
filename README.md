@@ -55,6 +55,10 @@ being installed on the local system.  Specifically, we require:
     data generation scripts.  This should be preinstalled (or easily
     installable) on just about any Unix system.
 
+  * The locale must be UTF-8-enabled.  On a Unix system, this can
+    typically be accomplished by setting an environment variable
+    `LC_ALL=en_US.UTF-8`.
+
 As a guideline, the `Dockerfile` contains commands showing how to
 install the necessary components on a Debian/Ubuntu machine.
 
